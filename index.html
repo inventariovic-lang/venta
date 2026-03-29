@@ -20,8 +20,18 @@
         .sidebar { width: 250px; background-color: var(--sidebar-bg); color: #fff; transition: all 0.3s; display: flex; flex-direction: column; z-index: 1050; overflow-y: auto; }
         .sidebar::-webkit-scrollbar { width: 5px; }
         .sidebar::-webkit-scrollbar-thumb { background: #3c8dbc; }
-        .sidebar .brand { height: 60px; min-height: 60px; display: flex; align-items: center; justify-content: center; background-color: #367fa9; font-weight: bold; font-size: 1.2rem; color: white; text-decoration: none; }
+        .sidebar .brand { height: 60px; min-height: 60px; display: flex; align-items: center; justify-content: center; background-color: #367fa9; font-weight: bold; font-size: 1.2rem; color: white; text-decoration: none; position: relative; }
         
+        /* Flecha para cerrar en móvil */
+        .close-sidebar-btn {
+            display: none;
+            position: absolute;
+            right: 15px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: white;
+        }
+
         .sidebar .nav-item { padding: 12px 20px; color: var(--text-light); cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: space-between; }
         .sidebar .nav-item:hover, .sidebar .nav-item.active { background-color: var(--sidebar-hover); color: #fff; border-left: 3px solid var(--navbar-bg); }
 
@@ -48,10 +58,22 @@
 
         .box { background: #fff; border-top: 3px solid #d2d6de; border-radius: 3px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); padding: 20px; }
 
+        /* Estilos Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            z-index: 1040;
+        }
+
         @media (max-width: 768px) {
             .sidebar { position: fixed; height: 100%; left: -250px; }
             .sidebar.show { left: 0; }
+            .sidebar.show ~ .sidebar-overlay { display: block; }
             .menu-toggle-btn { display: block; }
+            .close-sidebar-btn { display: block; } /* Mostrar flecha solo en móvil */
         }
     </style>
 </head>
@@ -61,7 +83,10 @@
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
 
     <aside class="sidebar" id="sidebar">
-        <a href="#" class="brand">SIS VENTAS</a>
+        <div class="brand">
+            <a href="#" style="color: white; text-decoration: none;">SIS VENTAS</a>
+            <i class="fa fa-arrow-left close-sidebar-btn" onclick="toggleMenu()"></i>
+        </div>
         
         <div class="nav-item active" onclick="switchView('inicio', this)">
             <div><i class="fa fa-tachometer-alt me-2"></i> Dashboard</div>
@@ -90,7 +115,7 @@
             <i class="fa fa-angle-left arrow"></i>
         </div>
         <div class="collapse sidebar-submenu" id="menu-ventas">
-            <div class="nav-sub-item" onclick="switchView('ventas_lista', this)"><i class="far fa-circle me-2"></i> Ventas</div>
+            <div class="nav-sub-item" onclick="switchView('ventas_lista', this)"><i class="far fa-circle me-2"></i> Crear Venta</div>
             <div class="nav-sub-item" onclick="switchView('clientes', this)"><i class="far fa-circle me-2"></i> Clientes</div>
         </div>
 
@@ -103,10 +128,7 @@
             <div class="nav-sub-item" onclick="switchView('permisos', this)"><i class="far fa-circle me-2"></i> Permisos</div>
         </div>
 
-        <div class="nav-item" onclick="switchView('ayuda', this)">
-            <div><i class="far fa-plus-square me-2"></i> Ayuda</div>
-            <span class="badge bg-danger">PDF</span>
-        </div>
+     
     </aside>
 
     <div class="main-content">
@@ -194,7 +216,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbx2RfjgtPmMtPyIBzGqE42LzHC5wqnJP5wL_2pdQQImU5CjZVVHJ4zwPGALuKpktRcQ/exec';
+    const API_URL = 'TU_URL_DE_GOOGLE_APPS_SCRIPT';
 
     function toggleMenu() {
         document.getElementById('sidebar').classList.toggle('show');
@@ -206,12 +228,14 @@
         document.querySelectorAll('.nav-item, .nav-sub-item').forEach(i => i.classList.remove('active'));
         element.classList.add('active');
         if(viewId === 'productos') cargarProductos();
-        if(window.innerWidth <= 768) toggleMenu();
+        if(window.innerWidth <= 768) {
+            const sidebar = document.getElementById('sidebar');
+            if(sidebar.classList.contains('show')) toggleMenu();
+        }
     }
 
     // --- GRÁFICAS ---
     document.addEventListener('DOMContentLoaded', () => {
-        // Gráfico de Ventas
         new Chart(document.getElementById('graficoVentas'), {
             type: 'line',
             data: {
@@ -228,7 +252,6 @@
             options: { maintainAspectRatio: false }
         });
 
-        // Gráfico de Pie
         new Chart(document.getElementById('graficoPie'), {
             type: 'doughnut',
             data: {
