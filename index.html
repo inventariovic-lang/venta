@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VENTAS - Panel de Administración</title>
+    <title>SIS VENTAS - Panel de Administración</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --sidebar-bg: #222d32;
             --sidebar-hover: #1e282c;
+            --submenu-bg: #2c3b41;
             --navbar-bg: #3c8dbc;
             --text-light: #b8c7ce;
         }
@@ -19,11 +20,9 @@
             overflow-x: hidden;
         }
         /* Layout */
-        .wrapper {
-            display: flex;
-            height: 100vh;
-        }
-        /* Sidebar */
+        .wrapper { display: flex; height: 100vh; }
+        
+        /* Sidebar Principal */
         .sidebar {
             width: 250px;
             background-color: var(--sidebar-bg);
@@ -31,10 +30,15 @@
             transition: all 0.3s ease-in-out;
             display: flex;
             flex-direction: column;
-            z-index: 1050; /* Para que quede por encima en móviles */
+            z-index: 1050;
+            overflow-y: auto;
         }
+        .sidebar::-webkit-scrollbar { width: 5px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #3c8dbc; }
+
         .sidebar .brand {
             height: 60px;
+            min-height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -44,19 +48,41 @@
             color: white;
             text-decoration: none;
         }
+        
+        /* Items del menú principal */
         .sidebar .nav-item {
-            padding: 15px 20px;
+            padding: 12px 20px;
             color: var(--text-light);
             cursor: pointer;
             border-left: 3px solid transparent;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         .sidebar .nav-item:hover, .sidebar .nav-item.active {
             background-color: var(--sidebar-hover);
             color: #fff;
             border-left: 3px solid var(--navbar-bg);
         }
-        
+
+        /* Submenús Desplegables */
+        .sidebar-submenu { background-color: var(--submenu-bg); }
+        .nav-sub-item {
+            padding: 10px 20px 10px 40px;
+            color: #8aa4af;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .nav-sub-item:hover, .nav-sub-item.active { color: #fff; }
+
+        /* Animación de la flecha */
+        .arrow { transition: transform 0.3s ease; font-size: 0.8rem; }
+        .nav-item[aria-expanded="true"] .arrow { transform: rotate(-90deg); }
+
         /* Main Content */
         .main-content {
             flex-grow: 1;
@@ -74,22 +100,10 @@
             color: white;
             justify-content: space-between;
         }
-        
-        /* Ocultar el botón de menú en PC, mostrar en móviles */
-        .menu-toggle-btn {
-            cursor: pointer;
-            font-size: 1.5rem;
-            display: none; 
-        }
+        .menu-toggle-btn { cursor: pointer; font-size: 1.5rem; display: none; }
 
-        .view-section {
-            display: none;
-            padding: 20px;
-        }
-        .view-section.active {
-            display: block;
-            animation: fadeIn 0.4s ease-in-out;
-        }
+        .view-section { display: none; padding: 20px; }
+        .view-section.active { display: block; animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -102,31 +116,16 @@
             padding: 20px;
         }
 
-        /* Capa oscura de fondo para celulares cuando el menú está abierto */
+        /* Móviles */
         .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1040;
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 1040;
         }
-
-        /* --- MEDIA QUERIES PARA CELULARES --- */
         @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                height: 100%;
-                left: -250px; /* Esconde el menú a la izquierda */
-            }
-            .sidebar.show {
-                left: 0; /* Muestra el menú cuando tiene la clase 'show' */
-            }
-            .menu-toggle-btn {
-                display: block; /* Muestra el botón de hamburguesa */
-            }
-            .sidebar-overlay.show {
-                display: block;
-            }
+            .sidebar { position: fixed; height: 100%; left: -250px; }
+            .sidebar.show { left: 0; }
+            .menu-toggle-btn { display: block; }
+            .sidebar-overlay.show { display: block; }
         }
     </style>
 </head>
@@ -137,9 +136,56 @@
 
     <aside class="sidebar" id="sidebar">
         <a href="#" class="brand">SIS VENTAS</a>
-        <div class="nav-item active" onclick="switchView('inicio', this)"><i class="fa fa-home me-2"></i> Inicio</div>
-        <div class="nav-item" onclick="switchView('productos', this)"><i class="fab fa-product-hunt me-2"></i> Productos</div>
-        <div class="nav-item" onclick="switchView('ventas', this)"><i class="fa fa-list me-2"></i> Crear Venta</div>
+        
+        <div class="nav-item active main-link" onclick="switchView('inicio', this)">
+            <div><i class="fa fa-tachometer-alt me-2"></i> Dashboard</div>
+        </div>
+
+        <div class="nav-item" data-bs-toggle="collapse" data-bs-target="#menu-almacen" aria-expanded="false">
+            <div><i class="fa fa-laptop me-2"></i> Almacén</div>
+            <i class="fa fa-angle-left arrow"></i>
+        </div>
+        <div class="collapse sidebar-submenu" id="menu-almacen">
+            <div class="nav-sub-item" onclick="switchView('productos', this)"><i class="far fa-circle me-2"></i> Artículos</div>
+            <div class="nav-sub-item" onclick="switchView('categorias', this)"><i class="far fa-circle me-2"></i> Categorías</div>
+        </div>
+
+        <div class="nav-item" data-bs-toggle="collapse" data-bs-target="#menu-compras" aria-expanded="false">
+            <div><i class="fa fa-th me-2"></i> Compras</div>
+            <i class="fa fa-angle-left arrow"></i>
+        </div>
+        <div class="collapse sidebar-submenu" id="menu-compras">
+            <div class="nav-sub-item" onclick="switchView('ingresos', this)"><i class="far fa-circle me-2"></i> Ingresos</div>
+            <div class="nav-sub-item" onclick="switchView('proveedores', this)"><i class="far fa-circle me-2"></i> Proveedores</div>
+        </div>
+
+        <div class="nav-item" data-bs-toggle="collapse" data-bs-target="#menu-ventas" aria-expanded="false">
+            <div><i class="fa fa-shopping-cart me-2"></i> Ventas</div>
+            <i class="fa fa-angle-left arrow"></i>
+        </div>
+        <div class="collapse sidebar-submenu" id="menu-ventas">
+            <div class="nav-sub-item" onclick="switchView('ventas', this)"><i class="far fa-circle me-2"></i> Ventas</div>
+            <div class="nav-sub-item" onclick="switchView('clientes', this)"><i class="far fa-circle me-2"></i> Clientes</div>
+        </div>
+
+        <div class="nav-item" data-bs-toggle="collapse" data-bs-target="#menu-acceso" aria-expanded="false">
+            <div><i class="fa fa-folder me-2"></i> Acceso</div>
+            <i class="fa fa-angle-left arrow"></i>
+        </div>
+        <div class="collapse sidebar-submenu" id="menu-acceso">
+            <div class="nav-sub-item" onclick="switchView('usuarios', this)"><i class="far fa-circle me-2"></i> Usuarios</div>
+            <div class="nav-sub-item" onclick="switchView('permisos', this)"><i class="far fa-circle me-2"></i> Permisos</div>
+        </div>
+
+        <div class="nav-item main-link" onclick="switchView('ayuda', this)">
+            <div><i class="far fa-plus-square me-2"></i> Ayuda</div>
+            <span class="badge bg-danger">PDF</span>
+        </div>
+
+        <div class="nav-item main-link" onclick="switchView('acerca', this)">
+            <div><i class="fa fa-info-circle me-2"></i> Acerca De...</div>
+            <span class="badge bg-warning text-dark">IT</span>
+        </div>
     </aside>
 
     <div class="main-content">
@@ -149,48 +195,38 @@
         </header>
 
         <section id="view-inicio" class="view-section active">
-            <h2>Tablero Principal</h2>
-            <div class="box mt-3">
-                <p>Bienvenido al sistema de inventario. Selecciona una opción del menú para comenzar.</p>
-            </div>
+            <h2>Dashboard</h2>
+            <div class="box mt-3"><p>Bienvenido al Panel de Control principal.</p></div>
         </section>
 
         <section id="view-productos" class="view-section">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h2>Administrar Productos</h2>
+                <h2>Administrar Artículos</h2>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarProducto">
                     <i class="fa fa-plus"></i> Nuevo
                 </button>
             </div>
-            
             <div class="box">
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped table-hover mb-0">
                         <thead class="table-light">
-                            <tr>
-                                <th>#</th>
-                                <th>Código</th>
-                                <th>Descripción</th>
-                                <th>Categoría</th>
-                                <th>Stock</th>
-                                <th>Compra</th>
-                                <th>Venta</th>
-                                <th>Acciones</th>
-                            </tr>
+                            <tr><th>#</th><th>Código</th><th>Descripción</th><th>Categoría</th><th>Stock</th><th>Compra</th><th>Venta</th><th>Acciones</th></tr>
                         </thead>
-                        <tbody>
-                            </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
         </section>
 
-        <section id="view-ventas" class="view-section">
-            <h2>Crear Venta</h2>
-            <div class="box mt-3">
-                <p>Módulo de ventas en construcción...</p>
-            </div>
-        </section>
+        <section id="view-categorias" class="view-section"><h2>Categorías</h2><div class="box mt-3"><p>Módulo en construcción...</p></div></section>
+        <section id="view-ingresos" class="view-section"><h2>Ingresos de Compras</h2><div class="box mt-3"><p>Módulo en construcción...</p></div></section>
+        <section id="view-proveedores" class="view-section"><h2>Proveedores</h2><div class="box mt-3"><p>Módulo en construcción...</p></div></section>
+        <section id="view-ventas" class="view-section"><h2>Ventas Realizadas</h2><div class="box mt-3"><p>Módulo en construcción...</p></div></section>
+        <section id="view-clientes" class="view-section"><h2>Gestión de Clientes</h2><div class="box mt-3"><p>Módulo en construcción...</p></div></section>
+        <section id="view-usuarios" class="view-section"><h2>Gestión de Usuarios</h2><div class="box mt-3"><p>Módulo en construcción...</p></div></section>
+        <section id="view-permisos" class="view-section"><h2>Roles y Permisos</h2><div class="box mt-3"><p>Módulo en construcción...</p></div></section>
+        <section id="view-ayuda" class="view-section"><h2>Manual de Ayuda</h2><div class="box mt-3"><p>Descargar manual en PDF.</p></div></section>
+        <section id="view-acerca" class="view-section"><h2>Acerca del Sistema</h2><div class="box mt-3"><p>SIS VENTAS v1.0. Desarrollado por IT.</p></div></section>
     </div>
 </div>
 
@@ -198,43 +234,25 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header" style="background-color: #3c8dbc; color: white;">
-        <h5 class="modal-title"><i class="fa fa-plus"></i> Agregar Producto</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title"><i class="fa fa-plus"></i> Agregar Artículo</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <form id="formAgregarProducto">
-          <div class="mb-3">
-            <label class="form-label fw-bold">Código del Producto</label>
-            <input type="text" class="form-control" id="nuevoCodigo" placeholder="Ej: ABC-123" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold">Descripción</label>
-            <textarea class="form-control" id="nuevaDescripcion" rows="2" placeholder="Nombre o detalle del producto" required></textarea>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold">Categoría</label>
-            <select class="form-select" id="nuevaCategoria">
-                <option value="General">General</option>
-                <option value="Electrónica">Electrónica</option>
-                <option value="Ropa">Ropa</option>
-                <option value="Alimentos">Alimentos</option>
-            </select>
+          <div class="mb-3"><label class="form-label fw-bold">Código</label><input type="text" class="form-control" id="nuevoCodigo" required></div>
+          <div class="mb-3"><label class="form-label fw-bold">Descripción</label><input type="text" class="form-control" id="nuevaDescripcion" required></div>
+          <div class="mb-3"><label class="form-label fw-bold">Categoría</label>
+            <select class="form-select" id="nuevaCategoria"><option>General</option><option>Electrónica</option><option>Ropa</option></select>
           </div>
           <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="form-label fw-bold">Stock Inicial</label>
-              <input type="number" class="form-control" id="nuevoStock" value="0" required>
-            </div>
-            <div class="col-md-6 mb-3">
-              <label class="form-label fw-bold">Precio de Compra</label>
-              <input type="number" step="0.01" class="form-control" id="nuevoPrecio" placeholder="0.00" required>
-            </div>
+            <div class="col-md-6 mb-3"><label class="form-label fw-bold">Stock</label><input type="number" class="form-control" id="nuevoStock" required></div>
+            <div class="col-md-6 mb-3"><label class="form-label fw-bold">Precio Compra</label><input type="number" step="0.01" class="form-control" id="nuevoPrecio" required></div>
           </div>
         </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button type="submit" form="formAgregarProducto" class="btn btn-primary">Guardar Producto</button>
+        <button type="submit" form="formAgregarProducto" class="btn btn-primary">Guardar</button>
       </div>
     </div>
   </div>
@@ -242,37 +260,34 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // 1. RECUERDA PONER AQUÍ TU URL DE GOOGLE APPS SCRIPT
+    // 1. PEGA TU URL DE GOOGLE APPS SCRIPT AQUÍ
     const API_URL = 'ESCRIBE_AQUI_TU_URL_DE_IMPLEMENTACION';
 
-    // Función para mostrar/ocultar el menú en celulares
     function toggleMenu() {
         document.getElementById('sidebar').classList.toggle('show');
         document.getElementById('sidebarOverlay').classList.toggle('show');
     }
 
-    // 2. Función para cambiar entre pestañas
+    // 2. Función mejorada para cambiar vistas con submenús
     function switchView(viewId, element) {
-        // Ocultar todas las secciones
+        // Ocultar todas las secciones y mostrar la seleccionada
         document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
         document.getElementById('view-' + viewId).classList.add('active');
         
-        // Actualizar el menú lateral
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        // Quitar la clase 'active' de todos los items (principales y secundarios)
+        document.querySelectorAll('.nav-item, .nav-sub-item').forEach(i => i.classList.remove('active'));
+        
+        // Marcar como activo el elemento clickeado
         element.classList.add('active');
 
-        // Cerrar el menú automáticamente en móviles al seleccionar una opción
-        if (window.innerWidth <= 768) {
-            toggleMenu();
-        }
+        // Si estamos en celular, cerrar el menú al elegir una opción
+        if (window.innerWidth <= 768) { toggleMenu(); }
 
-        // Cargar datos si entramos a productos
-        if(viewId === 'productos') {
-            cargarProductosDesdeSheet();
-        }
+        // Cargar datos solo si entramos a "Artículos" (productos)
+        if(viewId === 'productos') { cargarProductosDesdeSheet(); }
     }
 
-    // 3. Función para traer los datos de Google Sheets
+    // 3. Cargar datos desde Google Sheets
     async function cargarProductosDesdeSheet() {
         const tbody = document.querySelector('#view-productos tbody');
         tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Cargando datos... <i class="fa fa-spinner fa-spin ms-2"></i></td></tr>';
@@ -280,11 +295,9 @@
         try {
             const response = await fetch(`${API_URL}?action=getProductos`);
             const productos = await response.json();
-            
             if (productos.error) throw new Error(productos.error);
 
             tbody.innerHTML = ''; 
-
             productos.forEach((p, index) => {
                 const tr = document.createElement('tr');
                 let stockVal = p.Stock === "" ? 0 : p.Stock;
@@ -305,17 +318,18 @@
                 `;
                 tbody.appendChild(tr);
             });
-
         } catch (error) {
-            console.error('Error:', error);
-            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error de conexión: ${error.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error: ${error.message}</td></tr>`;
         }
     }
 
-    // 4. Función para guardar nuevo producto
+    // 4. Guardar producto
     document.getElementById('formAgregarProducto').addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+        const btnGuardar = e.target.querySelector('button[type="submit"]');
+        const originalText = btnGuardar.innerText;
+        btnGuardar.innerText = "Guardando..."; btnGuardar.disabled = true;
+
         const datos = {
             action: 'addProducto',
             codigo: document.getElementById('nuevoCodigo').value,
@@ -325,29 +339,14 @@
             precio: document.getElementById('nuevoPrecio').value
         };
 
-        const btnGuardar = e.target.querySelector('button[type="submit"]');
-        const originalText = btnGuardar.innerText;
-        btnGuardar.innerText = "Guardando...";
-        btnGuardar.disabled = true;
-
         try {
-            await fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(datos)
-            });
-
-            alert("Producto guardado correctamente.");
+            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(datos) });
+            alert("Artículo guardado correctamente.");
             bootstrap.Modal.getInstance(document.getElementById('modalAgregarProducto')).hide();
             e.target.reset(); 
             cargarProductosDesdeSheet(); 
-            
-        } catch (error) {
-            alert("Error al guardar: " + error.message);
-        } finally {
-            btnGuardar.innerText = originalText;
-            btnGuardar.disabled = false;
-        }
+        } catch (error) { alert("Error al guardar: " + error.message); } 
+        finally { btnGuardar.innerText = originalText; btnGuardar.disabled = false; }
     });
 </script>
 </body>
