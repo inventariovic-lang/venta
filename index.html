@@ -111,6 +111,8 @@
                         <form id="formCrearVenta">
                             <div class="input-group mb-3"><span class="input-group-text"><i class="fa fa-user"></i></span><input type="text" class="form-control" value="Administrador" readonly></div>
                             <div class="input-group mb-3"><span class="input-group-text"><i class="fa fa-users"></i></span><select class="form-select"><option selected disabled>Seleccionar cliente</option></select></div>
+                            <div class="input-group mb-3"><span class="input-group-text"><i class="fa fa-money-bill-trend-up"></i> Tasa del día</span><input type="number" id="tasaDia" class="form-control" value="1" step="0.01" oninput="renderCarrito()"></div>
+                            
                             <div class="table-responsive mb-3" style="min-height: 100px; border: 1px solid #eee;">
                                 <table class="table table-sm">
                                     <thead><tr><th>Desc.</th><th>Cant.</th><th>Precio</th><th>Total</th><th></th></tr></thead>
@@ -169,7 +171,7 @@
     
     let carrito = [];
     let totalVentaActual = 0; 
-    let productosCache = []; // Variable para guardar los productos localmente y poder editarlos
+    let productosCache = []; 
 
     function toggleMenu() { document.getElementById('sidebar').classList.toggle('show'); }
 
@@ -196,13 +198,12 @@
         try {
             const res = await fetch(`${API_URL}?action=getProductos`);
             const productos = await res.json();
-            productosCache = productos; // Guardamos en memoria
+            productosCache = productos; 
             
             tbodyStock.innerHTML = '';
             tbodyVentas.innerHTML = '';
             
             productos.forEach((p, i) => {
-                // Modificado el botón de acción para llamar a la función prepararEdicion
                 tbodyStock.innerHTML += `
                     <tr>
                         <td>${i+1}</td>
@@ -229,7 +230,6 @@
         }
     }
 
-    // --- FUNCIONES DE EDICIÓN ---
     function prepararModalNuevo() {
         document.getElementById('formProducto').reset();
         document.getElementById('form_action').value = 'addProducto';
@@ -241,19 +241,18 @@
     function prepararEdicion(index) {
         const p = productosCache[index];
         document.getElementById('cod').value = p.Codigo;
-        document.getElementById('cod').readOnly = true; // El código suele ser la llave primaria
+        document.getElementById('cod').readOnly = true; 
         document.getElementById('desc').value = p.Descripcion;
         document.getElementById('cate').value = p.Categoria || 'General';
         document.getElementById('stock').value = p.Stock;
         document.getElementById('precio').value = p.Precio;
         
-        document.getElementById('form_action').value = 'editProducto'; // Cambiamos la acción
+        document.getElementById('form_action').value = 'editProducto'; 
         document.getElementById('modalTitle').innerText = 'Editar Artículo';
         
         new bootstrap.Modal(document.getElementById('modalAgregar')).show();
     }
 
-    // --- LÓGICA DEL CARRITO ---
     function agregarAlCarrito(cod, desc, precio, stockMax) {
         let item = carrito.find(i => i.codigo === cod);
         if (item) {
@@ -281,7 +280,15 @@
 
     function renderCarrito() {
         const tbody = document.getElementById('tablaVentaDetalle');
-        if (carrito.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr>'; totalVentaActual = 0; return; }
+        // OBTENER TASA DEL DIA
+        const tasa = parseFloat(document.getElementById('tasaDia').value) || 0;
+        
+        if (carrito.length === 0) { 
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr>'; 
+            totalVentaActual = 0; 
+            return; 
+        }
+        
         tbody.innerHTML = '';
         let totalGeneral = 0;
         carrito.forEach(item => {
@@ -289,11 +296,16 @@
             totalGeneral += totalFila;
             tbody.innerHTML += `<tr><td><small>${item.descripcion}</small></td><td><input type="number" class="form-control form-control-sm" value="${item.cantidad}" min="1" max="${item.stockMax}" onchange="cambiarCantidad('${item.codigo}', this.value)" style="width: 60px;"></td><td>$${item.precio.toFixed(2)}</td><td class="fw-bold">$${totalFila.toFixed(2)}</td><td><button type="button" class="btn btn-danger btn-sm p-1" onclick="eliminarDelCarrito('${item.codigo}')"><i class="fa fa-trash"></i></button></td></tr>`;
         });
+        
         totalVentaActual = totalGeneral;
+        // CALCULAR TOTAL CON TASA
+        const totalConTasa = totalGeneral * tasa;
+        
         tbody.innerHTML += `<tr class="table-active fw-bold"><td colspan="3" class="text-end">TOTAL A PAGAR:</td><td colspan="2">$${totalGeneral.toFixed(2)}</td></tr>`;
+        // MOSTRAR FILA CON CONVERSIÓN
+        tbody.innerHTML += `<tr class="table-info fw-bold"><td colspan="3" class="text-end">TOTAL EN BS:</td><td colspan="2">${totalConTasa.toFixed(2)}</td></tr>`;
     }
 
-    // --- PROCESAR LA VENTA ---
     document.getElementById('formCrearVenta').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (carrito.length === 0) { alert("El carrito está vacío."); return; }
@@ -308,7 +320,6 @@
         } catch (error) { alert("Error al procesar."); } finally { btn.innerHTML = 'Guardar venta'; btn.disabled = false; }
     });
 
-    // --- GUARDAR / EDITAR PRODUCTO ---
     document.getElementById('formProducto').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btnGuardarProducto');
