@@ -230,6 +230,12 @@
                 <div class="col-md-7">
                     <div class="box" style="border-top-color: #f39c12;">
                         <h5 class="mb-3 text-muted">Productos Disponibles</h5>
+                        
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="fa fa-search"></i></span>
+                            <input type="text" id="buscadorProductos" class="form-control" placeholder="Buscar producto por descripción..." onkeyup="filtrarBuscadorVentas()">
+                        </div>
+                        
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered table-striped table-hover" id="tablaVentaProductos">
                                 <thead class="table-light">
@@ -567,6 +573,23 @@
             cargarProductos();
         } catch (err) { alert("Error al guardar"); } finally { btn.disabled = false; btn.innerText = 'Guardar'; }
     });
+
+    // FUNCION BUSCADOR AGREGADA AQUÍ
+    function filtrarBuscadorVentas() {
+        const input = document.getElementById('buscadorProductos').value.toLowerCase();
+        const filas = document.querySelectorAll('#tablaVentaProductos tbody tr');
+        
+        filas.forEach(fila => {
+            // El índice 2 corresponde a la columna "Descripción"
+            const descripcion = fila.children[2].textContent.toLowerCase();
+            if (descripcion.includes(input)) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    }
+
 async function cargarVentasCredito() {
     const tbody = document.querySelector('#tablaVentasCredito tbody');
     const labelTotal = document.getElementById('total-pendiente-credito');
