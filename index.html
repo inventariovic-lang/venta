@@ -74,14 +74,54 @@
         <div class="collapse sidebar-submenu" id="menu-ventas">
             <div class="nav-sub-item" onclick="switchView('administrar_ventas', this)"><i class="far fa-circle me-2"></i> Administrar ventas</div>
             <div class="nav-sub-item" onclick="switchView('ventas_lista', this)"><i class="far fa-circle me-2"></i> Crear Venta</div>
+	    <div class="nav-item" onclick="switchView('ventas_credito', this)"><i class="fa fa-hand-holding-dollar"></i> Ventas a Crédito
+
+</div>
+
         </div>
+
     </aside>
 
     <div class="main-content">
+
         <header class="top-navbar">
+
             <i class="fa fa-bars menu-toggle-btn" onclick="toggleMenu()"></i>
+
             <span><i class="fa fa-user-circle me-1"></i> Administrador</span>
+
         </header>
+<div id="view-ventas_credito" class="view-section">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4><i class="fa fa-hand-holding-dollar text-warning"></i> Control de Ventas a Crédito</h4>
+
+        <div class="badge bg-danger p-2" id="total-pendiente-credito" style="font-size: 1rem;">
+            Total Pendiente: $0.00
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="tablaVentasCredito">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Factura</th>
+                            <th>Cliente</th>
+                            <th>Total USD</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
         <section id="view-inicio" class="view-section active">
             <h2>Dashboard</h2>
@@ -155,9 +195,29 @@
                 <div class="col-md-5">
                     <div class="box" style="border-top-color: #00a65a;">
                         <form id="formCrearVenta">
-                            <div class="input-group mb-3"><span class="input-group-text"><i class="fa fa-user"></i></span><input type="text" class="form-control" value="Administrador" readonly></div>
-                            <div class="input-group mb-3"><span class="input-group-text"><i class="fa fa-users"></i></span><select class="form-select" id="selectCliente"><option selected disabled>Seleccionar cliente</option></select></div>
-                            <div class="input-group mb-3"><span class="input-group-text"><i class="fa fa-money-bill-trend-up"></i> Tasa del día</span><input type="number" id="tasaDia" class="form-control" value="1" step="0.01" oninput="renderCarrito()"></div>
+    <div class="input-group mb-3">
+        <span class="input-group-text"><i class="fa fa-user"></i></span>
+        <input type="text" class="form-control" value="Administrador" readonly>
+    </div>
+    
+    <div class="input-group mb-3">
+        <span class="input-group-text"><i class="fa fa-users"></i></span>
+        <select id="selectCliente" class="form-select">
+            <option value="">Seleccione un cliente...</option>
+        </select>
+    </div>
+
+    <div class="input-group mb-3">
+        <span class="input-group-text"><i class="fa fa-credit-card"></i></span>
+        <select class="form-select" id="selectMetodoPago">
+            <option value="Contado" selected>Contado</option>
+            <option value="Crédito">Crédito</option>
+        </select>
+    </div>
+    <div class="input-group mb-3">
+        <span class="input-group-text"><i class="fa fa-money-bill-trend-up"></i> Tasa del día</span>
+        <input type="number" id="tasaDia" class="form-control" value="1" step="0.01" oninput="renderCarrito()">
+    </div>
                             
                             <div class="table-responsive mb-3" style="min-height: 100px; border: 1px solid #eee;">
                                 <table class="table table-sm">
@@ -189,6 +249,7 @@
     </div>
 </div>
 
+
 <div class="modal fade" id="modalAgregar" tabindex="-1">
     <div class="modal-dialog">
         <form id="formProducto" class="modal-content">
@@ -211,6 +272,8 @@
     </div>
 </div>
 
+
+
 <div class="modal fade" id="modalCliente" tabindex="-1">
     <div class="modal-dialog">
         <form id="formCliente" class="modal-content">
@@ -232,7 +295,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzvWXJbCmbaVsxjyqjJh8QtrMtQ-pUgl4V4rIWPGV5pJOsFIr4NzMbH1j9WgOfiQ8-j/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbw8oudNzqBLA5dYJFo8gApmgB5pU24IHTR7AlbM8Cz2fBpGt2nmyAtmp1_q4EdeR4w5/exec';
     
     let carrito = [];
     let totalVentaActual = 0; 
@@ -241,20 +304,19 @@
 
     function toggleMenu() { document.getElementById('sidebar').classList.toggle('show'); }
 
-    function switchView(viewId, element) {
-        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-        document.getElementById('view-' + viewId).classList.add('active');
-        
-        if(viewId === 'productos' || viewId === 'ventas_lista') cargarProductos();
-        if(viewId === 'clientes' || viewId === 'ventas_lista') cargarClientes();
-        if(viewId === 'administrar_ventas') cargarHistorialVentas();
-        
-        if(element) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            element.classList.add('active');
-        }
-        if(window.innerWidth <= 768) toggleMenu();
-    }
+ function switchView(viewId, element) {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + viewId).classList.add('active');
+    
+    if(viewId === 'productos' || viewId === 'ventas_lista') cargarProductos();
+    if(viewId === 'clientes' || viewId === 'ventas_lista') cargarClientes();
+    if(viewId === 'administrar_ventas') cargarHistorialVentas();
+    
+    // NUEVO: Cargar créditos al entrar a la vista
+    if(viewId === 'ventas_credito') cargarVentasCredito(); 
+    
+    // ... resto del código del menú ...
+}
 
     async function cargarDashboard() {
         try {
@@ -412,18 +474,46 @@
         } catch (err) { alert("Error"); } finally { btn.disabled = false; btn.innerText = 'Guardar Cliente'; }
     });
 
+    // -------- ESTE ES EL BLOQUE QUE ESTABA ROTO --------
     document.getElementById('formCrearVenta').addEventListener('submit', async (e) => {
         e.preventDefault();
         const cli = document.getElementById('selectCliente').value;
-        if (!cli || carrito.length === 0) { alert("Complete los datos"); return; }
+        const metodo = document.getElementById('selectMetodoPago').value;
+        
+        if (!cli || carrito.length === 0) { alert("Faltan datos (Cliente o Productos)"); return; }
+        
         const btn = document.getElementById('btnGuardarVenta');
-        btn.disabled = true;
+        btn.innerHTML = 'Procesando...'; btn.disabled = true;
+
+        const detalleTexto = carrito.map(i => `${i.cantidad}x ${i.descripcion}`).join(', ');
+
         try {
-            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'guardarVenta', cliente: cli, carrito: carrito, total: totalVentaActual }) });
-            alert("Venta guardada");
-            carrito = []; renderCarrito(); cargarProductos();
-        } catch (e) { } finally { btn.disabled = false; }
+            await fetch(API_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify({ 
+                    action: 'guardarVenta', 
+                    cliente: cli, 
+                    carrito: carrito, 
+                    total: totalVentaActual,
+                    detalle: detalleTexto,
+                    metodoPago: metodo 
+                }) 
+            });
+            alert("¡Venta procesada exitosamente!");
+            // Limpiar carrito y recargar datos después de vender
+            carrito = []; 
+            renderCarrito();
+            cargarProductos();
+            cargarDashboard();
+        } catch (error) { 
+            alert("Error al procesar la venta."); 
+        } finally { 
+            btn.innerHTML = 'Guardar venta'; 
+            btn.disabled = false; 
+        }
     });
+    // ---------------------------------------------------
 
     function prepararModalNuevo() {
         document.getElementById('formProducto').reset();
@@ -440,7 +530,7 @@
         document.getElementById('cate').value = p.Categoria || 'General';
         document.getElementById('stock').value = p.Stock;
         
-        // CORRECCIÓN APLICADA AQUÍ: Mostrar con decimales en el input del modal
+        // Mostrar con decimales en el input del modal
         document.getElementById('precio').value = parseFloat(p.Precio).toFixed(2);
         
         document.getElementById('modalTitle').innerText = 'Editar Artículo';
@@ -480,8 +570,62 @@
             cargarProductos();
         } catch (err) { alert("Error al guardar"); } finally { btn.disabled = false; btn.innerText = 'Guardar'; }
     });
+async function cargarVentasCredito() {
+    const tbody = document.querySelector('#tablaVentasCredito tbody');
+    const labelTotal = document.getElementById('total-pendiente-credito');
+    
+    if (!tbody) return; // Seguridad por si el elemento no existe
+    
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center">Filtrando cuentas por cobrar...</td></tr>';
+    
+    try {
+        const res = await fetch(`${API_URL}?action=getVentas`);
+        const ventas = await res.json();
+        
+        // Filtro robusto: busca la columna ignorando tildes y mayúsculas
+        const creditos = ventas.filter(v => {
+            // Intentamos obtener el valor de la columna de método de pago
+            const metodo = v["Metodo Pago"] || v["Método Pago"] || v["metodo pago"] || "";
+            return metodo.toString().toLowerCase().includes("crédito") || 
+                   metodo.toString().toLowerCase().includes("credito");
+        });
+        
+        let sumaPendiente = 0;
+        tbody.innerHTML = '';
+        
+        if (creditos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay ventas a crédito registradas.</td></tr>';
+            labelTotal.innerText = 'Total Pendiente: $0.00';
+            return;
+        }
 
-    window.onload = () => { cargarProductos(); cargarClientes(); cargarDashboard(); };
-</script>
-</body>
+        creditos.forEach((v, i) => {
+            // Usamos parseFloat para asegurar que el total sea un número
+            const monto = parseFloat(v.Total) || 0;
+            sumaPendiente += monto;
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td>${i+1}</td>
+                    <td><span class="badge bg-secondary">${v.ID || '---'}</span></td>
+                    <td>${v.Cliente || 'Desconocido'}</td>
+                    <td class="fw-bold text-danger">$${monto.toFixed(2)}</td>
+                    <td>${v.Fecha || '---'}</td>
+                    <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-success" title="Marcar como pagado" onclick="alert('Funcionalidad de cobro próximamente')">
+                            <i class="fa fa-check"></i> Cobrar
+                        </button>
+                    </td>
+                </tr>`;
+        });
+        
+        labelTotal.innerText = `Total Pendiente: $${sumaPendiente.toFixed(2)}`;
+        
+    } catch (e) { 
+        console.error("Error en créditos:", e);
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error al cargar datos. Verifique la conexión.</td></tr>'; 
+    }
+}    window.onload = () => { cargarProductos(); cargarClientes(); cargarDashboard(); };
+</script></body>
 </html>
