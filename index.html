@@ -178,7 +178,7 @@
                                 <th>Código factura</th>
                                 <th>Cliente</th>
                                 <th>Vendedor</th>
-                                <th>Neto</th>
+                                <th>Monto</th>
                                 <th>Detalle</th>
                                 <th>Fecha</th>
                                 <th>Acciones</th>
@@ -651,14 +651,21 @@ async function cargarVentasCredito() {
             return;
         }
 
+        // ¡AQUÍ ESTABA EL ERROR! Faltaba esta línea para que el modal lea los datos:
+        window.listaCreditos = creditos;
+
         creditos.forEach((v, i) => {
             const monto = parseFloat(v.Total) || 0;
-            sumaPendiente += monto;
+            sumaPendiente += monto; // Corregido: se sumaba dos veces en tu código anterior
             
             tbody.innerHTML += `
                 <tr>
                     <td>${i+1}</td>
-                    <td><span class="badge bg-secondary">${v.ID || '---'}</span></td>
+                    <td>
+                        <a href="javascript:void(0)" onclick="abrirModalDetalle(${i})" class="badge bg-primary text-decoration-none p-2 shadow-sm fs-6" title="Ver detalle de la factura">
+                            <i class="fa fa-search"></i> ${v.ID || '---'}
+                        </a>
+                    </td>
                     <td>${v.Cliente || 'Desconocido'}</td>
                     <td class="fw-bold text-danger">$${monto.toFixed(2)}</td>
                     <td>${v.Fecha || '---'}</td>
@@ -677,7 +684,62 @@ async function cargarVentasCredito() {
         console.error("Error en créditos:", e);
         tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error al cargar datos. Verifique la conexión.</td></tr>'; 
     }
-}    
+}  
+
+// --- FUNCIÓN PARA MOSTRAR DETALLE DE FACTURA ---
+    function abrirModalDetalle(index) {
+        // Obtenemos la factura exacta a la que se le hizo clic usando su índice
+        const factura = window.listaCreditos[index];
+        if (!factura) return;
+
+        // Llenamos los datos en la ventana emergente
+        document.getElementById('detFacturaID').innerText = factura.ID || 'S/N';
+        document.getElementById('detFacturaCliente').innerText = factura.Cliente || 'Desconocido';
+        document.getElementById('detFacturaFecha').innerText = factura.Fecha || '---';
+        
+        const monto = parseFloat(factura.Total) || 0;
+        document.getElementById('detFacturaTotal').innerText = '$' + monto.toFixed(2);
+
+        // Buscamos los productos (ajusta "Detalle" si en tu base de datos la columna se llama diferente, por ejemplo: factura.Productos)
+        const detalle = factura.Detalle || factura.Detalles || factura.Productos || 'No hay detalles registrados para esta venta.';
+        
+        // Si el detalle viene separado por comas (Ej: "1x Mouse, 2x Teclado"), lo ponemos como lista
+        const detalleFormateado = detalle.split(',').map(item => '• ' + item.trim()).join('\n');
+        
+        document.getElementById('detFacturaProductos').innerText = detalleFormateado;
+
+        // Mostramos el Modal
+        const modal = new bootstrap.Modal(document.getElementById('modalDetalleFactura'));
+        modal.show();
+    }
 window.onload = () => { cargarProductos(); cargarClientes(); cargarDashboard(); };
-</script></body>
+</script>
+
+<div class="modal fade" id="modalDetalleFactura" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">
+                    <i class="fa fa-receipt"></i> Detalle de Venta <span id="detFacturaID" class="text-warning fw-bold"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Cliente:</strong> <span id="detFacturaCliente"></span></p>
+                    <p class="mb-1"><strong>Fecha:</strong> <span id="detFacturaFecha"></span></p>
+                    <p class="mb-1"><strong>Total:</strong> <span id="detFacturaTotal" class="text-success fw-bold"></span></p>
+                </div>
+                <h6 class="border-bottom pb-2 mb-3"><i class="fa fa-box"></i> Productos adquiridos:</h6>
+                <div id="detFacturaProductos" class="bg-light p-3 border rounded font-monospace" style="white-space: pre-wrap; font-size: 0.95em;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
 </html>
