@@ -760,32 +760,57 @@
         document.getElementById('total-diario').innerText = `Total Día: $${totalSumaDiaria.toFixed(2)}`;
     }
 
-    async function cargarProductos() {
+   async function cargarProductos() {
         const tbodyStock = document.querySelector('#tablaProductos tbody');
         const tbodyVentas = document.querySelector('#tablaVentaProductos tbody');
         if(tbodyStock) tbodyStock.innerHTML = '<tr><td colspan="7" class="text-center py-4">Cargando...</td></tr>';
         
         try {
             const res = await fetch(`${API_URL}?action=getProductos`);
-            const productos = await res.json();
-            productosCache = productos; 
+            let productos = await res.json();
+            
+            // ORDENAR GLOBALMENTE: De menor a mayor existencia (Stock)
+            productos.sort((a, b) => parseFloat(a.Stock) - parseFloat(b.Stock));
+            
+            productosCache = productos; // Sincroniza el caché con el nuevo orden
             
             if(tbodyStock) {
                 tbodyStock.innerHTML = '';
                 productos.forEach((p, i) => {
                     const precioFormateado = p.Precio ? parseFloat(p.Precio).toFixed(2) : "0.00";
-                    tbodyStock.innerHTML += `<tr><td>${i+1}</td><td class="fw-bold text-muted">${p.Codigo}</td><td class="fw-bold">${p.Descripcion}</td><td>${p.Categoria || '---'}</td><td><span class="badge rounded-pill ${p.Stock <= 10 ? 'bg-danger' : 'bg-success'} px-3">${p.Stock}</span></td><td class="fw-bold text-success">$${precioFormateado}</td><td><button class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="prepararEdicion(${i})"><i class="fa fa-pencil"></i></button></td></tr>`;
+                    // Se mantiene el índice (i) para que coincida con productosCache al editar
+                    tbodyStock.innerHTML += `<tr>
+                        <td>${i+1}</td>
+                        <td class="fw-bold text-muted">${p.Codigo}</td>
+                        <td class="fw-bold">${p.Descripcion}</td>
+                        <td>${p.Categoria || '---'}</td>
+                        <td><span class="badge rounded-pill ${p.Stock <= 10 ? 'bg-danger' : 'bg-success'} px-3">${p.Stock}</span></td>
+                        <td class="fw-bold text-success">$${precioFormateado}</td>
+                        <td><button class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="prepararEdicion(${i})"><i class="fa fa-pencil"></i></button></td>
+                    </tr>`;
                 });
             }
             
             if(tbodyVentas) {
                 tbodyVentas.innerHTML = '';
+                // Aquí ya no hace falta el sort local porque "productos" ya viene ordenado
                 productos.forEach((p, i) => {
-                    let btn = p.Stock > 0 ? `<button type="button" class="btn btn-dark btn-sm rounded-pill px-3" onclick="agregarAlCarrito('${p.Codigo}', '${p.Descripcion}', ${p.Precio}, ${p.Stock})">Agregar</button>` : `<button class="btn btn-secondary btn-sm rounded-pill px-3" disabled>Agotado</button>`;
-                    tbodyVentas.innerHTML += `<tr><td>${i+1}</td><td class="text-muted small">${p.Codigo}</td><td class="fw-bold">${p.Descripcion}</td><td><span class="badge rounded-pill ${p.Stock <= 5 ? 'bg-danger' : 'bg-success'}">${p.Stock}</span></td><td>${btn}</td></tr>`;
+                    let btn = p.Stock > 0 
+                        ? `<button type="button" class="btn btn-dark btn-sm rounded-pill px-3" onclick="agregarAlCarrito('${p.Codigo}', '${p.Descripcion}', ${p.Precio}, ${p.Stock})">Agregar</button>` 
+                        : `<button class="btn btn-secondary btn-sm rounded-pill px-3" disabled>Agotado</button>`;
+                    
+                    tbodyVentas.innerHTML += `<tr>
+                        <td>${i+1}</td>
+                        <td class="text-muted small">${p.Codigo}</td>
+                        <td class="fw-bold">${p.Descripcion}</td>
+                        <td><span class="badge rounded-pill ${p.Stock <= 5 ? 'bg-danger' : 'bg-success'}">${p.Stock}</span></td>
+                        <td>${btn}</td>
+                    </tr>`;
                 });
             }
-        } catch (e) { }
+        } catch (e) {
+            console.error("Error al cargar productos:", e);
+        }
     }
 
     function agregarAlCarrito(cod, desc, precio, stockMax) {
