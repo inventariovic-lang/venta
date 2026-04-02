@@ -8,222 +8,34 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            /* Paleta de colores inspirada en la imagen */
-            --app-yellow: #fff000;
-            --app-dark: #202124;
-            --app-gray: #f2f2f2;
-            --app-bg: #ffffff;
-            --text-main: #1a1a1a;
-            --text-muted: #757575;
-            --radius-pill: 50px;
-            --radius-card: 20px;
-            --radius-btn: 16px;
+            --sidebar-bg: #222d32; --sidebar-hover: #1e282c; --submenu-bg: #2c3b41;
+            --navbar-bg: #3c8dbc; --text-light: #b8c7ce;
         }
-        
-        body { 
-            background-color: var(--app-bg); 
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
-            color: var(--text-main);
-            overflow-x: hidden; 
-        }
-        
+        body { background-color: #ecf0f5; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         .wrapper { display: flex; height: 100vh; }
-        
-        /* Sidebar Rediseñado */
-        .sidebar { 
-            width: 260px; 
-            background-color: var(--app-bg); 
-            border-right: 1px solid #eaeaea; 
-            transition: all 0.3s; 
-            display: flex; 
-            flex-direction: column; 
-            z-index: 1050; 
-            overflow-y: auto; 
-        }
-        
-        .sidebar .brand { 
-            height: 80px; 
-            min-height: 80px; 
-            display: flex; 
-            align-items: center; 
-            padding-left: 20px;
-            font-weight: 800; 
-            font-size: 1.4rem; 
-            color: var(--text-main); 
-            text-decoration: none; 
-            position: relative; 
-        }
-        
-        .sidebar .brand i {
-            background-color: var(--app-yellow);
-            color: var(--text-main);
-            padding: 8px;
-            border-radius: 50%;
-            margin-right: 10px;
-            font-size: 1.1rem;
-        }
-
-        .close-sidebar-btn { display: none; position: absolute; right: 20px; font-size: 1.2rem; cursor: pointer; color: var(--text-main); }
-        
-        .sidebar .nav-item { 
-            padding: 14px 20px; 
-            margin: 4px 16px;
-            border-radius: var(--radius-btn);
-            color: var(--text-muted); 
-            font-weight: 600;
-            cursor: pointer; 
-            transition: all 0.2s; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-        }
-        
-        .sidebar .nav-item:hover, .sidebar .nav-item.active { 
-            background-color: var(--app-yellow); 
-            color: var(--text-main); 
-        }
-        
-        .sidebar-submenu { background-color: transparent; }
-        
-        .nav-sub-item { 
-            padding: 10px 20px 10px 50px; 
-            color: var(--text-muted); 
-            cursor: pointer; 
-            font-size: 0.95rem; 
-            font-weight: 500;
-            transition: all 0.2s; 
-            display: flex; 
-            align-items: center; 
-            border-radius: var(--radius-btn);
-            margin: 2px 16px;
-        }
-        .nav-sub-item:hover {
-            background-color: var(--app-gray);
-            color: var(--text-main);
-        }
-
-        /* Contenido Principal y Navbar */
+        .sidebar { width: 250px; background-color: var(--sidebar-bg); color: #fff; transition: all 0.3s; display: flex; flex-direction: column; z-index: 1050; overflow-y: auto; }
+        .sidebar .brand { height: 60px; min-height: 60px; display: flex; align-items: center; justify-content: center; background-color: #367fa9; font-weight: bold; font-size: 1.2rem; color: white; text-decoration: none; position: relative; }
+        .close-sidebar-btn { display: none; position: absolute; right: 15px; font-size: 1.2rem; cursor: pointer; color: white; }
+        .sidebar .nav-item { padding: 12px 20px; color: var(--text-light); cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: space-between; }
+        .sidebar .nav-item:hover, .sidebar .nav-item.active { background-color: var(--sidebar-hover); color: #fff; border-left: 3px solid var(--navbar-bg); }
+        .sidebar-submenu { background-color: var(--submenu-bg); }
+        .nav-sub-item { padding: 10px 20px 10px 40px; color: #8aa4af; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; display: flex; align-items: center; }
         .main-content { flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto; width: 100%; }
-        
-        .top-navbar { 
-            height: 80px; 
-            background-color: var(--app-bg); 
-            display: flex; 
-            align-items: center; 
-            padding: 0 30px; 
-            color: var(--text-main); 
-            justify-content: space-between; 
-            border-bottom: 1px solid #eaeaea;
-        }
-        
-        .search-pill {
-            background-color: var(--app-gray);
-            border-radius: var(--radius-pill);
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            color: var(--text-muted);
-            font-weight: 500;
-            width: 300px;
-        }
-
+        .top-navbar { height: 60px; background-color: var(--navbar-bg); display: flex; align-items: center; padding: 0 20px; color: white; justify-content: space-between; }
         .menu-toggle-btn { cursor: pointer; font-size: 1.5rem; display: none; }
-        
-        .view-section { display: none; padding: 30px; }
+        .view-section { display: none; padding: 20px; }
         .view-section.active { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Tarjetas Estilo App */
-        .card-app {
-            background: #fff;
-            border-radius: var(--radius-card);
-            border: 1px solid #f0f0f0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-
-        .card-app-yellow {
-            background-color: var(--app-yellow);
-            border-radius: var(--radius-card);
-            padding: 30px;
-            margin-bottom: 20px;
-            border: none;
-            color: var(--text-main);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Cajas de Estadísticas (Botones cuadrados de la imagen) */
-        .stat-box { 
-            background: #fff; 
-            border-radius: var(--radius-btn); 
-            border: 1px solid #eaeaea;
-            padding: 20px; 
-            text-align: center;
-            transition: transform 0.2s;
-        }
-        .stat-box:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
-        .stat-box i { font-size: 28px; color: var(--text-main); margin-bottom: 10px; display: block; }
-        .stat-box h3 { font-size: 24px; font-weight: 800; margin: 0; }
-        .stat-box p { margin: 5px 0 0 0; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; }
-        
-        /* Botones personalizados */
-        .btn-app-primary {
-            background-color: var(--app-dark);
-            color: white;
-            border-radius: var(--radius-pill);
-            padding: 10px 24px;
-            font-weight: 600;
-            border: none;
-        }
-        .btn-app-primary:hover { background-color: #333; color: white; }
-
-        .btn-app-yellow {
-            background-color: var(--app-yellow);
-            color: var(--text-main);
-            border-radius: var(--radius-pill);
-            padding: 10px 24px;
-            font-weight: 700;
-            border: none;
-        }
-        .btn-app-yellow:hover { background-color: #e6d800; }
-
-        .btn-pill-toggle {
-            background-color: #5c626a; /* Color oscuro de "Principal" */
-            color: white;
-            border-radius: var(--radius-pill);
-            padding: 8px 20px;
-            font-weight: 600;
-            border: none;
-            margin-right: 10px;
-        }
-        .btn-pill-toggle.inactive {
-            background-color: var(--app-bg);
-            color: var(--text-main);
-            border: 1px solid #eaeaea;
-        }
-
-        /* Tablas rediseñadas */
-        .table { vertical-align: middle; }
-        .table thead th { 
-            background-color: var(--app-bg); 
-            color: var(--text-muted); 
-            border-bottom: 2px solid #eaeaea; 
-            font-weight: 600; 
-            padding-bottom: 15px;
-        }
-        .table tbody td { border-bottom: 1px solid #f5f5f5; padding: 15px 10px; }
-
+        .small-box { border-radius: 2px; position: relative; display: block; margin-bottom: 20px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); color: #fff; overflow: hidden; padding: 15px; }
+        .small-box h3 { font-size: 30px; font-weight: bold; margin: 0 0 10px 0; }
+        .box { background: #fff; border-top: 3px solid #d2d6de; border-radius: 3px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); padding: 20px; }
         .sidebar-overlay { display: none; position: fixed; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1040; }
-        
         @media (max-width: 768px) {
-            .sidebar { position: fixed; height: 100%; left: -260px; }
+            .sidebar { position: fixed; height: 100%; left: -250px; }
             .sidebar.show { left: 0; }
             .sidebar.show ~ .sidebar-overlay { display: block; }
             .menu-toggle-btn { display: block; }
             .close-sidebar-btn { display: block; }
-            .search-pill { display: none; } /* Ocultar en móvil para dar espacio */
         }
     </style>
 </head>
@@ -234,131 +46,96 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="brand">
-            <i class="fa fa-shopping-bag"></i>
-            <a href="#" style="color: inherit; text-decoration: none;">SIS VENTAS</a>
-            <i class="fa fa-times close-sidebar-btn" onclick="toggleMenu()"></i>
+            <a href="#" style="color: white; text-decoration: none;">SIS VENTAS</a>
+            <i class="fa fa-arrow-left close-sidebar-btn" onclick="toggleMenu()"></i>
         </div>
         
-        <div class="mt-3"></div>
-
         <div class="nav-item active" onclick="switchView('inicio', this)">
-            <div><i class="fa fa-home me-3"></i> Inicio</div>
+            <div><i class="fa fa-tachometer-alt me-2"></i> Dashboard</div>
         </div>
 
         <div class="nav-item" data-bs-toggle="collapse" data-bs-target="#menu-almacen">
-            <div><i class="fa fa-box-open me-3"></i> Almacén</div>
-            <i class="fa fa-angle-down"></i>
+            <div><i class="fa fa-laptop me-2"></i> Almacén</div>
+            <i class="fa fa-angle-left arrow"></i>
         </div>
         <div class="collapse sidebar-submenu" id="menu-almacen">
-            <div class="nav-sub-item" onclick="switchView('productos', this)">Artículos</div>
-            <div class="nav-sub-item" onclick="switchView('categorias', this)">Categorías</div>
+            <div class="nav-sub-item" onclick="switchView('productos', this)"><i class="far fa-circle me-2"></i> Artículos</div>
+            <div class="nav-sub-item" onclick="switchView('categorias', this)"><i class="far fa-circle me-2"></i> Categorías</div>
         </div>
 
         <div class="nav-item" onclick="switchView('clientes', this)">
-            <div><i class="fa fa-user-friends me-3"></i> Clientes</div>
+            <div><i class="fa fa-users me-2"></i> Clientes</div>
         </div>
 
         <div class="nav-item" data-bs-toggle="collapse" data-bs-target="#menu-ventas">
-            <div><i class="fa fa-receipt me-3"></i> Ventas</div>
-            <i class="fa fa-angle-down"></i>
+            <div><i class="fa fa-shopping-cart me-2"></i> Ventas</div>
+            <i class="fa fa-angle-left arrow"></i>
         </div>
         <div class="collapse sidebar-submenu" id="menu-ventas">
-            <div class="nav-sub-item" onclick="switchView('administrar_ventas', this)">Administrar ventas</div>
-            <div class="nav-sub-item" onclick="switchView('ventas_lista', this)">Crear Venta</div>
-            <div class="nav-sub-item" onclick="switchView('ventas_credito', this)">Ventas a Crédito</div>
+            <div class="nav-sub-item" onclick="switchView('administrar_ventas', this)"><i class="far fa-circle me-2"></i> Administrar ventas</div>
+            <div class="nav-sub-item" onclick="switchView('ventas_lista', this)"><i class="far fa-circle me-2"></i> Crear Venta</div>
+	    <div class="nav-sub-item" onclick="switchView('ventas_credito', this)"><i class="fa fa-hand-holding-dollar"></i>Ventas a Crédito</div>
         </div>
+
     </aside>
 
     <div class="main-content">
+
         <header class="top-navbar">
-            <div class="d-flex align-items-center">
-                <i class="fa fa-bars menu-toggle-btn me-3" onclick="toggleMenu()"></i>
-                <div class="search-pill">
-                    <i class="fa fa-search me-2"></i> ¿Qué necesitas buscar?
-                </div>
-            </div>
-            <div class="d-flex align-items-center fw-bold">
-                <div class="bg-light rounded-circle p-2 me-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fa fa-user text-dark"></i>
-                </div>
-                Admin
-            </div>
+            <i class="fa fa-bars menu-toggle-btn" onclick="toggleMenu()"></i>
+            <span><i class="fa fa-user-circle me-1"></i> Administrador</span>
         </header>
 
-        <section id="view-inicio" class="view-section active">
-            <div class="d-flex mb-4">
-                <button class="btn-pill-toggle">Principal</button>
-               
-            </div>
-
-            <div class="card-app" style="border-bottom: 4px solid var(--app-yellow);">
-                <p class="text-muted fw-bold mb-1">Ventas Totales</p>
-                <div class="d-flex align-items-baseline">
-                    <h1 class="fw-bold" style="font-size: 3rem; letter-spacing: -1px;" id="dash-ventas">$ 0.00</h1>
-                </div>
-                <p class="text-muted small mt-2">Ventas registradas en el sistema</p>
-            </div>
-
-            <div class="row g-3 mt-2">
-                <div class="col-6 col-md-3">
-                    <div class="stat-box">
-                        <i class="fa fa-users"></i>
-                        <h3 id="dash-clientes">0</h3>
-                        <p>Clientes</p>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-box">
-                        <i class="fa fa-tags"></i>
-                        <h3>0</h3>
-                        <p>Categorías</p>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-box">
-                        <i class="fa fa-box"></i>
-                        <h3>0</h3>
-                        <p>Productos</p>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="card-app-yellow h-100 d-flex flex-column justify-content-center m-0 p-3 text-center">
-                        <h6 class="fw-bold text-uppercase mb-1" style="font-size: 0.8rem;">Modo Rápido</h6>
-                        <p class="fw-bold mb-0">Crea una venta al instante</p>
-                        <i class="fa fa-bolt mt-2" style="font-size: 1.5rem;"></i>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <div id="view-ventas_credito" class="view-section">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                <h3 class="fw-bold"><i class="fa fa-hand-holding-dollar text-warning"></i> Cuentas por Cobrar</h3>
-                <div class="badge bg-danger rounded-pill p-3 mt-2 mt-md-0" id="total-pendiente-credito" style="font-size: 1.1rem; font-weight: 600;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4><i class="fa fa-hand-holding-dollar text-warning"></i> Control de Ventas a Crédito</h4>
+
+                <div class="badge bg-danger p-2" id="total-pendiente-credito" style="font-size: 1rem;">
                     Total Pendiente: $0.00
                 </div>
             </div>
 
-            <div class="card-app">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="tablaVentasCredito">
-                        <thead>
-                            <tr><th>#</th><th>Factura</th><th>Cliente</th><th>Total USD</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="tablaVentasCredito">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Factura</th>
+                                    <th>Cliente</th>
+                                    <th>Total USD</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <section id="view-clientes" class="view-section">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="fw-bold">Directorio de Clientes</h3>
-                <button class="btn-app-primary" onclick="prepararModalNuevoCliente()"><i class="fa fa-plus"></i> Nuevo Cliente</button>
+        <section id="view-inicio" class="view-section active">
+            <h2>Dashboard</h2>
+            <div class="row mt-3">
+                <div class="col-lg-3 col-6"><div class="small-box bg-info"><h3 id="dash-ventas">$0.00</h3><p>Ventas Totales</p></div></div>
+                <div class="col-lg-3 col-6"><div class="small-box bg-success"><h3>0</h3><p>Categorías</p></div></div>
+                <div class="col-lg-3 col-6"><div class="small-box bg-warning text-dark"><h3 id="dash-clientes">0</h3><p>Clientes</p></div></div>
+                <div class="col-lg-3 col-6"><div class="small-box bg-danger"><h3>0</h3><p>Productos</p></div></div>
             </div>
-            <div class="card-app">
+        </section>
+
+        <section id="view-clientes" class="view-section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Clientes</h2>
+                <button class="btn btn-primary" onclick="prepararModalNuevoCliente()"><i class="fa fa-plus"></i> Nuevo Cliente</button>
+            </div>
+            <div class="box">
                 <div class="table-responsive">
-                    <table class="table table-hover" id="tablaClientes">
+                    <table class="table table-bordered table-striped" id="tablaClientes">
                         <thead><tr><th>#</th><th>Nombre</th><th>Documento</th><th>Teléfono</th><th>Dirección</th><th>Acciones</th></tr></thead>
                         <tbody></tbody>
                     </table>
@@ -367,13 +144,13 @@
         </section>
 
         <section id="view-productos" class="view-section">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="fw-bold">Inventario de Artículos</h3>
-                <button class="btn-app-primary" onclick="prepararModalNuevo()"><i class="fa fa-plus"></i> Nuevo Artículo</button>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Artículos</h2>
+                <button class="btn btn-primary" onclick="prepararModalNuevo()"><i class="fa fa-plus"></i> Nuevo</button>
             </div>
-            <div class="card-app">
+            <div class="box">
                 <div class="table-responsive">
-                    <table class="table table-hover" id="tablaProductos">
+                    <table class="table table-bordered table-striped" id="tablaProductos">
                         <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Categoría</th><th>Stock</th><th>Precio</th><th>Acciones</th></tr></thead>
                         <tbody></tbody>
                     </table>
@@ -382,21 +159,30 @@
         </section>
 
         <section id="view-administrar_ventas" class="view-section">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                <h3 class="fw-bold">Historial de Ventas</h3>
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                <h2>Administrar ventas</h2>
                 <div class="d-flex align-items-center mt-2 mt-md-0">
-                    <input type="date" id="filtroFechaReporte" class="form-control rounded-pill me-2" onchange="filtrarReporteDiario()" style="background-color: var(--app-gray); border: none; padding: 10px 20px;">
-                    <div class="badge bg-success rounded-pill p-3 me-3" id="total-diario" style="font-size: 1.1rem;">
+                    <input type="date" id="filtroFechaReporte" class="form-control me-2" onchange="filtrarReporteDiario()" title="Filtrar reporte por fecha">
+                    <div class="badge bg-success p-2 me-3" id="total-diario" style="font-size: 1.1rem; min-width: 150px;">
                         Total Día: $0.00
                     </div>
-                    <button class="btn-app-yellow text-nowrap" onclick="switchView('ventas_lista')"><i class="fa fa-plus"></i> Nueva venta</button>
+                    <button class="btn btn-primary text-nowrap" onclick="switchView('ventas_lista')"><i class="fa fa-plus"></i> Agregar venta</button>
                 </div>
             </div>
-            <div class="card-app">
+            <div class="box">
                 <div class="table-responsive">
-                    <table class="table table-hover" id="tablaHistorialVentas">
+                    <table class="table table-bordered table-striped" id="tablaHistorialVentas">
                         <thead>
-                            <tr><th>#</th><th>Código</th><th>Cliente</th><th>Vendedor</th><th>Monto</th><th>Detalle</th><th>Fecha</th><th>Acciones</th></tr>
+                            <tr>
+                                <th>#</th>
+                                <th>Código factura</th>
+                                <th>Cliente</th>
+                                <th>Vendedor</th>
+                                <th>Monto</th>
+                                <th>Detalle</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
                         </thead>
                         <tbody></tbody>
                     </table>
@@ -405,61 +191,62 @@
         </section>
 
         <section id="view-ventas_lista" class="view-section">
-            <h3 class="fw-bold mb-4">Procesar Venta</h3>
+            <h2>Crear venta</h2>
             <div class="row mt-3">
                 <div class="col-md-5">
-                    <div class="card-app">
+                    <div class="box" style="border-top-color: #00a65a;">
                         <form id="formCrearVenta">
                             <div class="input-group mb-3">
-                                <span class="input-group-text bg-light border-0"><i class="fa fa-user"></i></span>
-                                <input type="text" class="form-control border-0 bg-light" value="Administrador" readonly>
+                                <span class="input-group-text"><i class="fa fa-user"></i></span>
+                                <input type="text" class="form-control" value="Administrador" readonly>
                             </div>
                             
                             <div class="input-group mb-3">
-                                <span class="input-group-text bg-light border-0"><i class="fa fa-users"></i></span>
-                                <select id="selectCliente" class="form-select border-0 bg-light">
+                                <span class="input-group-text"><i class="fa fa-users"></i></span>
+                                <select id="selectCliente" class="form-select">
                                     <option value="">Seleccione un cliente...</option>
                                 </select>
                             </div>
 
                             <div class="input-group mb-3">
-                                <span class="input-group-text bg-light border-0"><i class="fa fa-credit-card"></i></span>
-                                <select class="form-select border-0 bg-light" id="selectMetodoPago">
+                                <span class="input-group-text"><i class="fa fa-credit-card"></i></span>
+                                <select class="form-select" id="selectMetodoPago">
                                     <option value="Contado" selected>Contado</option>
                                     <option value="Crédito">Crédito</option>
                                 </select>
                             </div>
-                            <div class="input-group mb-4">
-                                <span class="input-group-text bg-light border-0"><i class="fa fa-money-bill-trend-up"></i> Tasa</span>
-                                <input type="number" id="tasaDia" class="form-control border-0 bg-light" value="1" step="0.01" oninput="renderCarrito()">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="fa fa-money-bill-trend-up"></i> Tasa del día</span>
+                                <input type="number" id="tasaDia" class="form-control" value="1" step="0.01" oninput="renderCarrito()">
                             </div>
                                                     
-                            <div class="table-responsive mb-4" style="min-height: 150px;">
-                                <table class="table table-sm table-borderless">
-                                    <thead class="text-muted border-bottom"><tr><th>Desc.</th><th>Cant.</th><th>Precio</th><th>Total</th><th></th></tr></thead>
-                                    <tbody id="tablaVentaDetalle"><tr><td colspan="5" class="text-center text-muted py-4">Sin productos seleccionados</td></tr></tbody>
+                            <div class="table-responsive mb-3" style="min-height: 100px; border: 1px solid #eee;">
+                                <table class="table table-sm">
+                                    <thead><tr><th>Desc.</th><th>Cant.</th><th>Precio</th><th>Total</th><th></th></tr></thead>
+                                    <tbody id="tablaVentaDetalle"><tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr></tbody>
                                 </table>
                             </div>
-                            <button id="btnGuardarVenta" class="btn-app-yellow w-100 fs-5" type="submit">Guardar Venta</button>
+                            <button id="btnGuardarVenta" class="btn btn-primary w-100" type="submit">Guardar venta</button>
                         </form>
                     </div>
                 </div>
                 
                 <div class="col-md-7">
-                    <div class="card-app">
-                        <h5 class="fw-bold mb-3">Catálogo de Productos</h5>
+                    <div class="box" style="border-top-color: #f39c12;">
+                        <h5 class="mb-3 text-muted">Productos Disponibles</h5>
                         
-                        <div class="input-group mb-4">
-                            <span class="input-group-text bg-light border-0 rounded-start-pill ps-4"><i class="fa fa-search text-muted"></i></span>
-                            <input type="text" id="buscadorProductos" class="form-control border-0 bg-light rounded-end-pill py-2" placeholder="Buscar por descripción..." onkeyup="filtrarBuscadorVentas()">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="fa fa-search"></i></span>
+                            <input type="text" id="buscadorProductos" class="form-control" placeholder="Buscar producto por descripción..." onkeyup="filtrarBuscadorVentas()">
                         </div>
                         
                         <div class="table-responsive">
-                            <table class="table table-hover" id="tablaVentaProductos">
-                                <thead>
+                            <table class="table table-sm table-bordered table-striped table-hover" id="tablaVentaProductos">
+                                <thead class="table-light">
                                     <tr><th>#</th><th>Código</th><th>Descripción</th><th>Stock</th><th>Acción</th></tr>
                                 </thead>
-                                <tbody></tbody>
+                                <tbody>
+                                    </tbody>
                             </table>
                         </div>
                     </div>
@@ -469,107 +256,63 @@
     </div>
 </div>
 
+
 <div class="modal fade" id="modalAgregar" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <form id="formProducto" class="modal-content" style="border-radius: var(--radius-card); border: none;">
+    <div class="modal-dialog">
+        <form id="formProducto" class="modal-content">
             <input type="hidden" id="form_action" value="addProducto">
-            <div class="modal-header border-0 pb-0">
-                <h4 id="modalTitle" class="fw-bold px-2 pt-2">Nuevo Artículo</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body px-4">
-                <div class="mb-3"><label class="text-muted small fw-bold">Código</label><input type="text" id="cod" class="form-control bg-light border-0 p-2 rounded" required></div>
-                <div class="mb-3"><label class="text-muted small fw-bold">Descripción</label><input type="text" id="desc" class="form-control bg-light border-0 p-2 rounded" required></div>
-                <div class="mb-3"><label class="text-muted small fw-bold">Categoría</label><select id="cate" class="form-select bg-light border-0 p-2 rounded" required><option value="General">General</option></select></div>
+            <div class="modal-header bg-primary text-white"><h5 id="modalTitle">Nuevo Artículo</h5></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="fw-bold">Código</label><input type="text" id="cod" class="form-control" required></div>
+                <div class="mb-3"><label class="fw-bold">Descripción</label><input type="text" id="desc" class="form-control" required></div>
+                <div class="mb-3"><label class="fw-bold">Categoría</label><select id="cate" class="form-select" required><option value="General">General</option></select></div>
                 <div class="row">
-                    <div class="col-6"><label class="text-muted small fw-bold">Stock</label><input type="number" id="stock" class="form-control bg-light border-0 p-2 rounded" required></div>
-                    <div class="col-6"><label class="text-muted small fw-bold">Precio</label><input type="number" step="0.01" id="precio" class="form-control bg-light border-0 p-2 rounded" required></div>
+                    <div class="col-6"><label class="fw-bold">Stock</label><input type="number" id="stock" class="form-control" required></div>
+                    <div class="col-6"><label class="fw-bold">Precio</label><input type="number" step="0.01" id="precio" class="form-control" required></div>
                 </div>
             </div>
-            <div class="modal-footer border-0 px-4 pb-4">
-                <button type="submit" class="btn-app-primary w-100" id="btnGuardarProducto">Guardar Cambios</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="btnGuardarProducto">Guardar</button>
             </div>
         </form>
     </div>
 </div>
 
 <div class="modal fade" id="modalCliente" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <form id="formCliente" class="modal-content" style="border-radius: var(--radius-card); border: none;">
+    <div class="modal-dialog">
+        <form id="formCliente" class="modal-content">
             <input type="hidden" id="cliente_action" value="addCliente">
-            <div class="modal-header border-0 pb-0">
-                <h4 id="modalClienteTitle" class="fw-bold px-2 pt-2">Nuevo Cliente</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white"><h5 id="modalClienteTitle">Nuevo Cliente</h5></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="fw-bold">Nombre Completo</label><input type="text" id="cli_nombre" class="form-control" required></div>
+                <div class="mb-3"><label class="fw-bold">Documento / ID</label><input type="text" id="cli_doc" class="form-control" required></div>
+                <div class="mb-3"><label class="fw-bold">Teléfono</label><input type="text" id="cli_tel" class="form-control"></div>
+                <div class="mb-3"><label class="fw-bold">Dirección</label><input type="text" id="cli_dir" class="form-control"></div>
             </div>
-            <div class="modal-body px-4">
-                <div class="mb-3"><label class="text-muted small fw-bold">Nombre Completo</label><input type="text" id="cli_nombre" class="form-control bg-light border-0 p-2 rounded" required></div>
-                <div class="mb-3"><label class="text-muted small fw-bold">Documento / ID</label><input type="text" id="cli_doc" class="form-control bg-light border-0 p-2 rounded" required></div>
-                <div class="mb-3"><label class="text-muted small fw-bold">Teléfono</label><input type="text" id="cli_tel" class="form-control bg-light border-0 p-2 rounded"></div>
-                <div class="mb-3"><label class="text-muted small fw-bold">Dirección</label><input type="text" id="cli_dir" class="form-control bg-light border-0 p-2 rounded"></div>
-            </div>
-            <div class="modal-footer border-0 px-4 pb-4">
-                <button type="submit" class="btn-app-primary w-100" id="btnGuardarCliente">Guardar Cliente</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="btnGuardarCliente">Guardar Cliente</button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="modal fade" id="modalDetalleFactura" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: var(--radius-card); border: none;">
-            <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <h4 class="modal-title fw-bold">
-                    Detalle Factura <span id="detFacturaID" class="text-warning"></span>
-                </h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body px-4 pt-4">
-                <div class="bg-light p-3 rounded mb-4">
-                    <p class="mb-1 text-muted small"><strong>CLIENTE</strong></p>
-                    <p class="mb-3 fw-bold fs-5" id="detFacturaCliente"></p>
-                    
-                    <div class="row">
-                        <div class="col-6">
-                            <p class="mb-1 text-muted small"><strong>FECHA</strong></p>
-                            <p class="mb-0 fw-bold" id="detFacturaFecha"></p>
-                        </div>
-                        <div class="col-6 text-end">
-                            <p class="mb-1 text-muted small"><strong>TOTAL USD</strong></p>
-                            <p class="mb-0 fw-bold text-success fs-5" id="detFacturaTotal"></p>
-                        </div>
-                    </div>
-                </div>
-                <p class="text-muted small fw-bold mb-2">PRODUCTOS ADQUIRIDOS</p>
-                <div id="detFacturaProductos" class="font-monospace text-dark" style="white-space: pre-wrap; font-size: 0.95em;">
-                </div>
-            </div>
-            <div class="modal-footer border-0 px-4 pb-4 mt-3">
-                <button type="button" class="btn-app-primary w-100" data-bs-dismiss="modal">Entendido</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // --- LÓGICA JAVASCRIPT INTACTA ---
     const API_URL = 'https://script.google.com/macros/s/AKfycbxYKPO-5T0LtQXngTbvqWUPWTh8QUPWlAcG19NEGdxee8OddsvcJ-d5OY9R9GLD2owb/exec';
     
     let carrito = [];
     let totalVentaActual = 0; 
     let productosCache = []; 
     let clientesCache = [];
-    let ventasCache = []; 
+    let ventasCache = []; // NUEVO: Para guardar el historial y poder filtrarlo
 
     function toggleMenu() { document.getElementById('sidebar').classList.toggle('show'); }
 
  function switchView(viewId, element) {
     document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
     document.getElementById('view-' + viewId).classList.add('active');
-    
-    // Solo actualizamos la clase active en el menú lateral visualmente
-    document.querySelectorAll('.sidebar .nav-item, .sidebar .nav-sub-item').forEach(el => el.classList.remove('active'));
-    if(element) element.classList.add('active');
     
     if(viewId === 'productos' || viewId === 'ventas_lista') cargarProductos();
     if(viewId === 'clientes' || viewId === 'ventas_lista') cargarClientes();
@@ -581,7 +324,7 @@
         try {
             const res = await fetch(`${API_URL}?action=getDashboardData`);
             const data = await res.json();
-            document.getElementById('dash-ventas').innerText = '$ ' + data.totalVentas.toFixed(2);
+            document.getElementById('dash-ventas').innerText = '$' + data.totalVentas.toFixed(2);
             document.getElementById('dash-clientes').innerText = data.totalClientes || 0;
         } catch (e) { console.log("Error cargando dashboard"); }
     }
@@ -599,7 +342,7 @@
             if(tbody) {
                 tbody.innerHTML = '';
                 clientes.forEach((c, i) => {
-                    tbody.innerHTML += `<tr><td>${i+1}</td><td class="fw-bold">${c.Nombre}</td><td>${c.Documento}</td><td>${c.Telefono}</td><td>${c.Direccion}</td><td><button class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="prepararEdicionCliente(${i})"><i class="fa fa-pencil"></i></button></td></tr>`;
+                    tbody.innerHTML += `<tr><td>${i+1}</td><td>${c.Nombre}</td><td>${c.Documento}</td><td>${c.Telefono}</td><td>${c.Direccion}</td><td><button class="btn btn-sm btn-warning" onclick="prepararEdicionCliente(${i})"><i class="fa fa-pencil"></i></button></td></tr>`;
                 });
             }
 
@@ -621,14 +364,16 @@
         new bootstrap.Modal(document.getElementById('modalCliente')).show();
     }
 
+    // FUNCIÓN MODIFICADA: Ahora usa la caché e inicializa la fecha de hoy
     async function cargarHistorialVentas() {
         const tbody = document.querySelector('#tablaHistorialVentas tbody');
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Cargando historial de ventas...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center">Cargando historial de ventas...</td></tr>';
         
         try {
             const res = await fetch(`${API_URL}?action=getVentas`);
-            ventasCache = await res.json(); 
+            ventasCache = await res.json(); // Guardamos en caché
             
+            // Setear la fecha de hoy en el input si está vacío
             const inputFecha = document.getElementById('filtroFechaReporte');
             if (!inputFecha.value) {
                 const hoy = new Date();
@@ -637,13 +382,15 @@
                 inputFecha.value = fechaLocal;
             }
             
+            // Ejecutamos el filtro inicial para mostrar el reporte del día actual
             filtrarReporteDiario();
             
         } catch (e) { 
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Error al conectar con la base de datos</td></tr>'; 
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Error al conectar con la base de datos</td></tr>'; 
         }
     }
 
+    // NUEVA FUNCIÓN: Filtra ventas por fecha y calcula el reporte diario
     function filtrarReporteDiario() {
         const fechaSeleccionada = document.getElementById('filtroFechaReporte').value;
         const tbody = document.querySelector('#tablaHistorialVentas tbody');
@@ -651,11 +398,13 @@
         let totalSumaDiaria = 0;
 
         if (fechaSeleccionada) {
+            // Convierte YYYY-MM-DD para buscar compatibilidad
             const [year, month, day] = fechaSeleccionada.split('-');
             
             ventasFiltradas = ventasCache.filter(v => {
                 if (!v.Fecha) return false;
                 const fStr = v.Fecha.toString();
+                // Busca coincidencias por si GAS devuelve dd/mm/yyyy, mm/dd/yyyy o ISO
                 return fStr.includes(`${year}-${month}-${day}`) || 
                        fStr.includes(`${day}/${month}/${year}`) || 
                        fStr.includes(`${month}/${day}/${year}`) ||
@@ -666,7 +415,7 @@
         tbody.innerHTML = '';
         
         if (ventasFiltradas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No hay ventas registradas para la fecha seleccionada.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No hay ventas registradas para la fecha seleccionada.</td></tr>';
         } else {
             ventasFiltradas.forEach((v, i) => {
                 const monto = parseFloat(v.Total) || 0;
@@ -675,26 +424,27 @@
                 tbody.innerHTML += `
                     <tr>
                         <td>${i+1}</td>
-                        <td class="fw-bold">${v.ID || '---'}</td>
+                        <td>${v.ID || '---'}</td>
                         <td>${v.Cliente || 'Consumidor Final'}</td>
                         <td>Administrador</td>
-                        <td class="fw-bold text-success">$${monto.toFixed(2)}</td> 
-                        <td style="font-size: 0.85rem;" class="text-muted">${v.Detalle || '---'}</td>
+                        <td>$${monto.toFixed(2)}</td> 
+                        <td style="font-size: 0.85rem;">${v.Detalle || '---'}</td>
                         <td>${v.Fecha || '---'}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-dark rounded-pill px-3"><i class="fa fa-ticket"></i></button>
+                            <button class="btn btn-sm btn-info text-white"><i class="fa fa-ticket"></i></button>
                         </td>
                     </tr>`;
             });
         }
 
+        // Actualizamos la etiqueta del total diario
         document.getElementById('total-diario').innerText = `Total Día: $${totalSumaDiaria.toFixed(2)}`;
     }
 
     async function cargarProductos() {
         const tbodyStock = document.querySelector('#tablaProductos tbody');
         const tbodyVentas = document.querySelector('#tablaVentaProductos tbody');
-        if(tbodyStock) tbodyStock.innerHTML = '<tr><td colspan="7" class="text-center py-4">Cargando...</td></tr>';
+        if(tbodyStock) tbodyStock.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
         
         try {
             const res = await fetch(`${API_URL}?action=getProductos`);
@@ -705,15 +455,15 @@
                 tbodyStock.innerHTML = '';
                 productos.forEach((p, i) => {
                     const precioFormateado = p.Precio ? parseFloat(p.Precio).toFixed(2) : "0.00";
-                    tbodyStock.innerHTML += `<tr><td>${i+1}</td><td class="fw-bold text-muted">${p.Codigo}</td><td class="fw-bold">${p.Descripcion}</td><td>${p.Categoria || '---'}</td><td><span class="badge rounded-pill ${p.Stock <= 10 ? 'bg-danger' : 'bg-success'} px-3">${p.Stock}</span></td><td class="fw-bold text-success">$${precioFormateado}</td><td><button class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="prepararEdicion(${i})"><i class="fa fa-pencil"></i></button></td></tr>`;
+                    tbodyStock.innerHTML += `<tr><td>${i+1}</td><td>${p.Codigo}</td><td>${p.Descripcion}</td><td>${p.Categoria || '---'}</td><td><span class="badge ${p.Stock <= 10 ? 'bg-danger' : 'bg-success'}">${p.Stock}</span></td><td>$${precioFormateado}</td><td><button class="btn btn-sm btn-warning" onclick="prepararEdicion(${i})"><i class="fa fa-pencil"></i></button></td></tr>`;
                 });
             }
             
             if(tbodyVentas) {
                 tbodyVentas.innerHTML = '';
                 productos.forEach((p, i) => {
-                    let btn = p.Stock > 0 ? `<button type="button" class="btn btn-dark btn-sm rounded-pill px-3" onclick="agregarAlCarrito('${p.Codigo}', '${p.Descripcion}', ${p.Precio}, ${p.Stock})">Agregar</button>` : `<button class="btn btn-secondary btn-sm rounded-pill px-3" disabled>Agotado</button>`;
-                    tbodyVentas.innerHTML += `<tr><td>${i+1}</td><td class="text-muted small">${p.Codigo}</td><td class="fw-bold">${p.Descripcion}</td><td><span class="badge rounded-pill ${p.Stock <= 5 ? 'bg-danger' : 'bg-success'}">${p.Stock}</span></td><td>${btn}</td></tr>`;
+                    let btn = p.Stock > 0 ? `<button type="button" class="btn btn-primary btn-sm" onclick="agregarAlCarrito('${p.Codigo}', '${p.Descripcion}', ${p.Precio}, ${p.Stock})">Agregar</button>` : `<button class="btn btn-secondary btn-sm" disabled>Agotado</button>`;
+                    tbodyVentas.innerHTML += `<tr><td>${i+1}</td><td>${p.Codigo}</td><td>${p.Descripcion}</td><td><span class="badge ${p.Stock <= 5 ? 'bg-danger' : 'bg-success'}">${p.Stock}</span></td><td>${btn}</td></tr>`;
                 });
             }
         } catch (e) { }
@@ -732,7 +482,7 @@
     function renderCarrito() {
         const tbody = document.getElementById('tablaVentaDetalle');
         const tasa = parseFloat(document.getElementById('tasaDia').value) || 0;
-        if (carrito.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Sin productos seleccionados</td></tr>'; return; }
+        if (carrito.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Sin productos</td></tr>'; return; }
         
         tbody.innerHTML = '';
         let totalGeneral = 0;
@@ -740,11 +490,11 @@
             const totalFila = item.cantidad * item.precio;
             totalGeneral += totalFila;
             const precioMostrar = item.precio ? parseFloat(item.precio).toFixed(2) : "0.00";
-            tbody.innerHTML += `<tr><td class="fw-bold"><small>${item.descripcion}</small></td><td>${item.cantidad}</td><td>$${precioMostrar}</td><td class="fw-bold text-success">$${totalFila.toFixed(2)}</td><td><button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="eliminarDelCarrito('${item.codigo}')"><i class="fa fa-times"></i></button></td></tr>`;
+            tbody.innerHTML += `<tr><td><small>${item.descripcion}</small></td><td>${item.cantidad}</td><td>$${precioMostrar}</td><td>$${totalFila.toFixed(2)}</td><td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarDelCarrito('${item.codigo}')"><i class="fa fa-trash"></i></button></td></tr>`;
         });
         totalVentaActual = totalGeneral;
-        tbody.innerHTML += `<tr class="border-top"><td colspan="3" class="text-end text-muted small pt-3">TOTAL USD:</td><td colspan="2" class="pt-3 fs-5 fw-bold">$${totalGeneral.toFixed(2)}</td></tr>`;
-        tbody.innerHTML += `<tr><td colspan="3" class="text-end text-muted small pb-3">TOTAL BS:</td><td colspan="2" class="pb-3 fw-bold">${(totalGeneral * tasa).toFixed(2)}</td></tr>`;
+        tbody.innerHTML += `<tr class="table-active fw-bold"><td colspan="3" class="text-end">TOTAL USD:</td><td colspan="2">$${totalGeneral.toFixed(2)}</td></tr>`;
+        tbody.innerHTML += `<tr class="table-info fw-bold"><td colspan="3" class="text-end">TOTAL BS:</td><td colspan="2">${(totalGeneral * tasa).toFixed(2)}</td></tr>`;
     }
 
     function eliminarDelCarrito(cod) { carrito = carrito.filter(i => i.codigo !== cod); renderCarrito(); }
@@ -801,7 +551,7 @@
         } catch (error) { 
             alert("Error al procesar la venta."); 
         } finally { 
-            btn.innerHTML = 'Guardar Venta'; 
+            btn.innerHTML = 'Guardar venta'; 
             btn.disabled = false; 
         }
     });
@@ -857,7 +607,7 @@
             alert("Operación exitosa");
             bootstrap.Modal.getInstance(document.getElementById('modalAgregar')).hide();
             cargarProductos();
-        } catch (err) { alert("Error al guardar"); } finally { btn.disabled = false; btn.innerText = 'Guardar Cambios'; }
+        } catch (err) { alert("Error al guardar"); } finally { btn.disabled = false; btn.innerText = 'Guardar'; }
     });
 
     function filtrarBuscadorVentas() {
@@ -879,56 +629,64 @@ async function cargarVentasCredito() {
     const labelTotal = document.getElementById('total-pendiente-credito');
     if (!tbody) return; 
     
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Cargando cuentas por cobrar...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center">Cargando cuentas por cobrar...</td></tr>';
     
     try {
         const res = await fetch(`${API_URL}?action=getVentas`);
         const ventas = await res.json();
         
-        const creditos = ventas.filter(v => {
-            const metodo = (v["Metodo Pago"] || v["Método Pago"] || "").toString().toLowerCase();
-            return metodo.includes("credito") || metodo.includes("crédito");
-        });
+        // Filtramos solo las ventas que dicen "Crédito"
+       const creditos = ventas.filter(v => {
+    const metodo = (v["Metodo Pago"] || v["Método Pago"] || "").toString().toLowerCase();
+    return metodo.includes("credito") || metodo.includes("crédito");
+});
         
+        // ¡IMPORTANTE! Guardamos en una variable global para que el modal funcione
         window.listaCreditos = creditos; 
         
         let sumaPendiente = 0;
         tbody.innerHTML = '';
         
         if (creditos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No hay ventas a crédito pendientes.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay ventas a crédito pendientes.</td></tr>';
             labelTotal.innerText = 'Total Pendiente: $0.00';
             return;
         }
 
-        creditos.forEach((v, i) => {
+ creditos.forEach((v, i) => {
             const monto = parseFloat(v.Total) || 0;
+            
+            // 1. Verificamos el estado que viene de Google Sheets 
+            // (Si está vacío, asumimos que es 'Pendiente')
             const estadoActual = (v.Estado || 'Pendiente').toLowerCase();
             const estaPagado = estadoActual === 'pagado';
             
+            // 2. Solo sumamos al total pendiente si NO está pagado
             if (!estaPagado) {
                 sumaPendiente += monto;
             }
 
+            // 3. Generamos los estilos condicionales para la etiqueta
             const badgeHTML = estaPagado 
-                ? '<span class="badge bg-success rounded-pill px-3 estado-badge">Pagado</span>'
-                : '<span class="badge bg-warning text-dark rounded-pill px-3 estado-badge">Pendiente</span>';
+                ? '<span class="badge bg-success text-white estado-badge">Pagado</span>'
+                : '<span class="badge bg-warning text-dark estado-badge">Pendiente</span>';
 
+            // 4. Generamos los estilos condicionales para el botón
             const buttonHTML = estaPagado
-                ? `<button class="btn btn-sm btn-light rounded-pill px-3 btn-cobrar" disabled><i class="fa fa-check"></i> Cobrado</button>`
-                : `<button class="btn btn-sm btn-dark rounded-pill px-3 btn-cobrar" onclick="marcarComoPagado('${v.ID}', ${monto}, this)"><i class="fa fa-money-bill-wave"></i> Cobrar</button>`;
+                ? `<button class="btn btn-sm btn-secondary btn-cobrar" disabled><i class="fa fa-check"></i> Cobrado</button>`
+                : `<button class="btn btn-sm btn-success btn-cobrar" onclick="marcarComoPagado('${v.ID}', ${monto}, this)"><i class="fa fa-money-bill-wave"></i> Cobrar</button>`;
 
             tbody.innerHTML += `
                 <tr>
                     <td>${i+1}</td>
                     <td>
-                        <a href="javascript:void(0)" onclick="abrirModalDetalle(${i})" class="badge bg-light text-dark border text-decoration-none px-3 rounded-pill" title="Ver Detalle">
+                        <a href="javascript:void(0)" onclick="abrirModalDetalle(${i})" class="badge bg-primary text-decoration-none shadow-sm" title="Ver Detalle">
                             <i class="fa fa-search"></i> ${v.ID || '---'}
                         </a>
                     </td>
-                    <td class="fw-bold">${v.Cliente || '---'}</td>
+                    <td>${v.Cliente || '---'}</td>
                     <td class="fw-bold text-danger">$${monto.toFixed(2)}</td>
-                    <td class="text-muted small">${v.Fecha || '---'}</td>
+                    <td>${v.Fecha || '---'}</td>
                     <td>${badgeHTML}</td>
                     <td>${buttonHTML}</td>
                 </tr>`;
@@ -938,31 +696,64 @@ async function cargarVentasCredito() {
         
     } catch (e) { 
         console.error("Error:", e);
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Error al cargar datos.</td></tr>'; 
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error al cargar datos.</td></tr>'; 
     }
 }
+// --- FUNCIÓN PARA MOSTRAR DETALLE DE FACTURA ---
+    function abrirModalDetalle(index) {
+        // Obtenemos la factura exacta a la que se le hizo clic usando su índice
+        const factura = window.listaCreditos[index];
+        if (!factura) return;
+
+        // Llenamos los datos en la ventana emergente
+        document.getElementById('detFacturaID').innerText = factura.ID || 'S/N';
+        document.getElementById('detFacturaCliente').innerText = factura.Cliente || 'Desconocido';
+        document.getElementById('detFacturaFecha').innerText = factura.Fecha || '---';
+        
+        const monto = parseFloat(factura.Total) || 0;
+        document.getElementById('detFacturaTotal').innerText = '$' + monto.toFixed(2);
+
+        // Buscamos los productos (ajusta "Detalle" si en tu base de datos la columna se llama diferente, por ejemplo: factura.Productos)
+        const detalle = factura.Detalle || factura.Detalles || factura.Productos || 'No hay detalles registrados para esta venta.';
+        
+        // Si el detalle viene separado por comas (Ej: "1x Mouse, 2x Teclado"), lo ponemos como lista
+        const detalleFormateado = detalle.split(',').map(item => '• ' + item.trim()).join('\n');
+        
+        document.getElementById('detFacturaProductos').innerText = detalleFormateado;
+
+        // Mostramos el Modal
+        const modal = new bootstrap.Modal(document.getElementById('modalDetalleFactura'));
+        modal.show();
+    }
 
 async function marcarComoPagado(id, monto, btnElement) {
     if (!confirm(`¿Confirmar el cobro de la factura ${id} por $${monto}?`)) return;
 
+    // 1. ACTUALIZACIÓN VISUAL INMEDIATA
+    // Desactivar el botón y cambiar su aspecto
     btnElement.disabled = true;
     btnElement.innerHTML = '<i class="fa fa-check"></i> Cobrado';
-    btnElement.classList.replace('btn-dark', 'btn-light');
+    btnElement.classList.replace('btn-success', 'btn-secondary');
 
-    const fila = btnElement.closest('tr'); 
+    // Cambiar el estado de "Pendiente" a "Pagado"
+    const fila = btnElement.closest('tr'); // Busca la fila actual
     const badge = fila.querySelector('.estado-badge');
     if (badge) {
-        badge.className = 'badge bg-success rounded-pill px-3 estado-badge';
+        badge.className = 'badge bg-success text-white estado-badge';
         badge.innerText = 'Pagado';
     }
 
+    // Restar del total pendiente
     const labelTotal = document.getElementById('total-pendiente-credito');
+    // Extraemos los números del texto actual
     let textoTotal = labelTotal.innerText;
     let totalActual = parseFloat(textoTotal.replace(/[^\d.-]/g, '')) || 0;
     
+    // Calculamos el nuevo total evitando números negativos
     let nuevoTotal = Math.max(0, totalActual - monto); 
     labelTotal.innerText = `Total Pendiente: $${nuevoTotal.toFixed(2)}`;
 
+    // 2. ENVÍO A LA BASE DE DATOS
     try {
         await fetch(API_URL, {
             method: 'POST',
@@ -971,22 +762,25 @@ async function marcarComoPagado(id, monto, btnElement) {
         });
 
         alert("¡Cobro registrado con éxito!");
+        
+        // Actualizamos el dashboard general, pero NO recargamos cargarVentasCredito() 
+        // para que no se borre el estado "Pagado" que acabamos de poner visualmente.
         cargarDashboard();
 
     } catch (error) {
         alert("Error al procesar el pago en el servidor.");
         
+        // (Opcional) Si falla el servidor, revertimos los cambios visuales
         btnElement.disabled = false;
         btnElement.innerHTML = '<i class="fa fa-money-bill-wave"></i> Cobrar';
-        btnElement.classList.replace('btn-light', 'btn-dark');
+        btnElement.classList.replace('btn-secondary', 'btn-success');
         if (badge) {
-            badge.className = 'badge bg-warning text-dark rounded-pill px-3 estado-badge';
+            badge.className = 'badge bg-warning text-dark estado-badge';
             badge.innerText = 'Pendiente';
         }
         labelTotal.innerText = `Total Pendiente: $${totalActual.toFixed(2)}`;
     }
 }
-
 function abrirModalDetalle(index) {
     const v = window.listaCreditos[index];
     if (!v) return;
@@ -996,14 +790,42 @@ function abrirModalDetalle(index) {
     document.getElementById('detFacturaFecha').innerText = v.Fecha;
     document.getElementById('detFacturaTotal').innerText = '$' + (parseFloat(v.Total) || 0).toFixed(2);
     
+    // Mostramos los productos que vienen en la columna "Detalle"
     document.getElementById('detFacturaProductos').innerText = v.Detalle || "No hay productos registrados";
     
+    // Abrimos el modal de Bootstrap
     const myModal = new bootstrap.Modal(document.getElementById('modalDetalleFactura'));
     myModal.show();
 }
 
 window.onload = () => { cargarProductos(); cargarClientes(); cargarDashboard(); };
 </script>
+
+<div class="modal fade" id="modalDetalleFactura" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">
+                    <i class="fa fa-receipt"></i> Detalle de Venta <span id="detFacturaID" class="text-warning fw-bold"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <p class="mb-1"><strong>Cliente:</strong> <span id="detFacturaCliente"></span></p>
+                    <p class="mb-1"><strong>Fecha:</strong> <span id="detFacturaFecha"></span></p>
+                    <p class="mb-1"><strong>Total:</strong> <span id="detFacturaTotal" class="text-success fw-bold"></span></p>
+                </div>
+                <h6 class="border-bottom pb-2 mb-3"><i class="fa fa-box"></i> Productos adquiridos:</h6>
+                <div id="detFacturaProductos" class="bg-light p-3 border rounded font-monospace" style="white-space: pre-wrap; font-size: 0.95em;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
