@@ -417,19 +417,24 @@
                 </div>
             </div>
         </section>
-<h4>&nbsp;Mes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dia</h4>
-<div class="d-flex align-items-center mt-2 mt-md-0">
-	
 
-    <input type="month" id="filtroMesReporte" class="form-control rounded-pill me-2" onchange="filtrarHistorial('mes')" title="Filtrar por Mes" style="background-color: var(--app-gray); border: none; padding: 10px 20px; max-width: 170px;">
-    
-    <input type="date" id="filtroFechaReporte" class="form-control rounded-pill me-2" onchange="filtrarHistorial('dia')" title="Filtrar por Día" style="background-color: var(--app-gray); border: none; padding: 10px 20px; max-width: 155px;">
-    
-    <div class="badge bg-success rounded-pill p-3 me-3" id="total-diario" style="font-size: 1.1rem; min-width: 180px;">
-        Total Día: $0.00
-    </div>
-    
-</div>
+        <section id="view-administrar_ventas" class="view-section">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+                <h3 class="fw-bold"><i class="fa fa-history text-primary me-2"></i> Administrar Ventas</h3>
+                <div class="d-flex align-items-center mt-2 mt-md-0">
+                    <div class="me-3">
+                        <small class="text-muted d-block">Filtrar Mes</small>
+                        <input type="month" id="filtroMesReporte" class="form-control rounded-pill" onchange="filtrarHistorial('mes')" style="background-color: var(--app-gray); border: none; padding: 10px 20px; max-width: 173px;">
+                    </div>
+                    <div class="me-3">
+                        <small class="text-muted d-block">Filtrar Día</small>
+                        <input type="date" id="filtroFechaReporte" class="form-control rounded-pill" onchange="filtrarHistorial('dia')" style="background-color: var(--app-gray); border: none; padding: 10px 20px; max-width: 148px;">
+                    </div>
+                    <div class="badge bg-success rounded-pill p-3" id="total-diario" style="font-size: 1.1rem; min-width: 165px; margin-top: 20px;">
+                        Total: $0.00
+                    </div>
+                </div>
+            </div>
             
             <div class="card-app">
                 <div class="table-responsive">
