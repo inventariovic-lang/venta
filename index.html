@@ -100,6 +100,7 @@
         .nav-sub-item:hover {
             background-color: var(--app-gray);
             color: var(--text-main);
+	   
         }
 
         /* Contenido Principal y Navbar */
@@ -416,18 +417,19 @@
                 </div>
             </div>
         </section>
+<h4>&nbsp;Mes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Dia</h4>
+<div class="d-flex align-items-center mt-2 mt-md-0">
+	
 
-        <section id="view-administrar_ventas" class="view-section">
-            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                <h3 class="fw-bold">Historial de Ventas</h3>
-                <div class="d-flex align-items-center mt-2 mt-md-0">
-                    <input type="date" id="filtroFechaReporte" class="form-control rounded-pill me-2" onchange="filtrarReporteDiario()" style="background-color: var(--app-gray); border: none; padding: 10px 20px;">
-                    <div class="badge bg-success rounded-pill p-3 me-3" id="total-diario" style="font-size: 1.1rem;">
-                        Total Día: $0.00
-                    </div>
-                    <button class="btn-app-yellow text-nowrap" onclick="switchView('ventas_lista')"><i class="fa fa-plus"></i> Nueva venta</button>
-                </div>
-            </div>
+    <input type="month" id="filtroMesReporte" class="form-control rounded-pill me-2" onchange="filtrarHistorial('mes')" title="Filtrar por Mes" style="background-color: var(--app-gray); border: none; padding: 10px 20px; max-width: 170px;">
+    
+    <input type="date" id="filtroFechaReporte" class="form-control rounded-pill me-2" onchange="filtrarHistorial('dia')" title="Filtrar por Día" style="background-color: var(--app-gray); border: none; padding: 10px 20px; max-width: 155px;">
+    
+    <div class="badge bg-success rounded-pill p-3 me-3" id="total-diario" style="font-size: 1.1rem; min-width: 180px;">
+        Total Día: $0.00
+    </div>
+    
+</div>
             
             <div class="card-app">
                 <div class="table-responsive">
@@ -703,31 +705,105 @@
         new bootstrap.Modal(document.getElementById('modalCliente')).show();
     }
 
-    async function cargarHistorialVentas() {
-        const tbody = document.querySelector('#tablaHistorialVentas tbody');
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Cargando historial de ventas...</td></tr>';
+    // Reemplazar la función cargarHistorialVentas() existente por esta:
+async function cargarHistorialVentas() {
+    const tbody = document.querySelector('#tablaHistorialVentas tbody');
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Cargando historial de ventas...</td></tr>';
+    
+    try {
+        const res = await fetch(`${API_URL}?action=getVentas`);
+        ventasCache = await res.json(); 
         
-        try {
-            const res = await fetch(`${API_URL}?action=getVentas`);
-            ventasCache = await res.json(); 
-            
-            const inputFecha = document.getElementById('filtroFechaReporte');
-            if (!inputFecha.value) {
-                const hoy = new Date();
-                const offset = hoy.getTimezoneOffset() * 60000;
-                const fechaLocal = new Date(hoy.getTime() - offset).toISOString().split('T')[0];
-                inputFecha.value = fechaLocal;
-            }
-            
-            filtrarReporteDiario();
-            
-            // ---> AQUÍ LLAMAMOS A LA GRÁFICA DESPUÉS DE CARGAR LAS VENTAS <---
-            generarGraficaMasVendidos(ventasCache);
-            
-        } catch (e) { 
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Error al conectar con la base de datos</td></tr>'; 
+        const inputFecha = document.getElementById('filtroFechaReporte');
+        const inputMes = document.getElementById('filtroMesReporte');
+        
+        // Carga por defecto el día de hoy si no hay nada seleccionado
+        if (!inputFecha.value && !inputMes.value) {
+            const hoy = new Date();
+            const offset = hoy.getTimezoneOffset() * 60000;
+            const fechaLocal = new Date(hoy.getTime() - offset).toISOString().split('T')[0];
+            inputFecha.value = fechaLocal;
+            filtrarHistorial('dia');
+        } else if (inputMes.value) {
+            filtrarHistorial('mes');
+        } else {
+            filtrarHistorial('dia');
         }
+        
+        generarGraficaMasVendidos(ventasCache);
+        
+    } catch (e) { 
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Error al conectar con la base de datos</td></tr>'; 
     }
+}
+
+// Eliminar filtrarReporteDiario() y añadir esta nueva función unificada:
+function filtrarHistorial(tipo) {
+    const tbody = document.querySelector('#tablaHistorialVentas tbody');
+    let ventasFiltradas = ventasCache;
+    let totalSuma = 0;
+    let textoEtiqueta = "Total: ";
+
+    if (tipo === 'dia') {
+        document.getElementById('filtroMesReporte').value = ''; // Limpiamos el mes
+        const fechaSeleccionada = document.getElementById('filtroFechaReporte').value;
+        if (fechaSeleccionada) {
+            const [year, month, day] = fechaSeleccionada.split('-');
+            ventasFiltradas = ventasCache.filter(v => {
+                if (!v.Fecha) return false;
+                const fStr = v.Fecha.toString();
+                return fStr.includes(`${year}-${month}-${day}`) || 
+                       fStr.includes(`${day}/${month}/${year}`) || 
+                       fStr.includes(`${month}/${day}/${year}`) ||
+                       fStr.startsWith(`${year}-${month}-${day}`);
+            });
+        }
+        textoEtiqueta = "Total Día: ";
+    } else if (tipo === 'mes') {
+        document.getElementById('filtroFechaReporte').value = ''; // Limpiamos el día
+        const mesSeleccionado = document.getElementById('filtroMesReporte').value; // Formato YYYY-MM
+        if (mesSeleccionado) {
+            const [year, month] = mesSeleccionado.split('-');
+            ventasFiltradas = ventasCache.filter(v => {
+                if (!v.Fecha) return false;
+                const fStr = v.Fecha.toString();
+                // Busca coincidencias de mes/año en distintos formatos posibles de Google Sheets
+                return fStr.includes(`${year}-${month}`) || 
+                       fStr.includes(`/${month}/${year}`) || 
+                       fStr.match(new RegExp(`^${month}/\\d{1,2}/${year}`));
+            });
+        }
+        textoEtiqueta = "Total Mes: ";
+    }
+
+    tbody.innerHTML = '';
+    
+    if (ventasFiltradas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No hay ventas registradas para el filtro seleccionado.</td></tr>';
+    } else {
+        ventasFiltradas.forEach((v, i) => {
+            const monto = parseFloat(v.Total) || 0;
+            totalSuma += monto;
+            
+            tbody.innerHTML += `
+                <tr>
+                    <td>${i+1}</td>
+                    <td class="fw-bold">${v.ID || '---'}</td>
+                    <td>${v.Cliente || 'Consumidor Final'}</td>
+                    <td>Administrador</td>
+                    <td class="fw-bold text-success">$${monto.toFixed(2)}</td> 
+                    <td style="font-size: 0.85rem;" class="text-muted">${v.Detalle || '---'}</td>
+                    <td>${v.Fecha || '---'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-dark rounded-pill px-3"><i class="fa fa-ticket"></i></button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    // Actualiza la etiqueta (Total Día o Total Mes) y el monto
+    document.getElementById('total-diario').innerText = `${textoEtiqueta}$${totalSuma.toFixed(2)}`;
+}
 
     function filtrarReporteDiario() {
         const fechaSeleccionada = document.getElementById('filtroFechaReporte').value;
