@@ -247,7 +247,7 @@
             .close-sidebar-btn { display: block; }
             .search-pill { display: none; } 
         }
-/* Estilo para el GIF del Sidebar */
+        /* Estilo para el GIF del Sidebar */
         .sidebar-gif {
             width: 40px;
             height: 40px;
@@ -261,7 +261,7 @@
 
 <div id="loginOverlay">
     <div class="login-card text-center">
- <div class="mb-2">
+        <div class="mb-2">
             
         </div>
         <div class="d-flex justify-content-center align-items-center mb-4 text-dark fs-3 fw-bold">
@@ -279,7 +279,7 @@
         </form>
         <div class="text-muted small text-start bg-light p-3 rounded-4">
             <p class="mb-1"><i class="fa fa-info-circle me-1"></i><strong>Acceso Valido requerido</strong></p>
-            <p class="mb-1 ms-3"> <code></code><code></code></p>
+            <p class="mb-1 ms-3">------------ <code></code> ---------------- <code></code></p>
             <p class="mb-0 ms-3"> <code></code>  <code></code></p>
         </div>
     </div>
@@ -671,6 +671,44 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalAccionesVenta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: var(--radius-card); border: none;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h4 class="modal-title fw-bold">
+                    Gestión de Factura <span id="accFacturaID" class="text-primary"></span>
+                </h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pt-4">
+                <div class="bg-light p-3 rounded mb-4">
+                    <p class="mb-1 text-muted small"><strong>CLIENTE</strong></p>
+                    <p class="mb-3 fw-bold fs-5" id="accFacturaCliente"></p>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-1 text-muted small"><strong>FECHA</strong></p>
+                            <p class="mb-0 fw-bold" id="accFacturaFecha"></p>
+                        </div>
+                        <div class="col-6 text-end">
+                            <p class="mb-1 text-muted small"><strong>TOTAL USD</strong></p>
+                            <p class="mb-0 fw-bold text-success fs-5" id="accFacturaTotal"></p>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-muted small fw-bold mb-2">PRODUCTOS ADQUIRIDOS</p>
+                <div id="accFacturaProductos" class="font-monospace text-dark" style="white-space: pre-wrap; font-size: 0.95em;">
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 mt-3 d-flex justify-content-between flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-danger rounded-pill px-4" id="btnEliminarFactura"><i class="fa fa-trash"></i> Eliminar</button>
+                <button type="button" class="btn btn-outline-primary rounded-pill px-4" id="btnEditarFactura"><i class="fa fa-edit"></i> Editar</button>
+                <button type="button" class="btn btn-secondary rounded-pill px-4 flex-grow-1" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="modalCategoria" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content rounded-4 border-0 shadow">
@@ -907,6 +945,7 @@
                 const monto = parseFloat(v.Total) || 0;
                 totalSuma += monto;
                 
+                // AQUÍ SE INTEGRA LA LLAMADA AL MODAL DE GESTIÓN Y ACCIONES
                 tbody.innerHTML += `
                     <tr>
                         <td>${i+1}</td>
@@ -917,7 +956,9 @@
                         <td style="font-size: 0.85rem;" class="text-muted">${v.Detalle || '---'}</td>
                         <td>${v.Fecha || '---'}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-dark rounded-pill px-3"><i class="fa fa-ticket"></i></button>
+                            <button class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="abrirModalAccionesVenta('${v.ID}')" title="Acciones de Factura">
+                                <i class="fa fa-ticket"></i>
+                            </button>
                         </td>
                     </tr>`;
             });
@@ -925,6 +966,52 @@
 
         document.getElementById('total-diario').innerText = `${textoEtiqueta}$${totalSuma.toFixed(2)}`;
     }
+
+    /* ------- NUEVAS FUNCIONES PARA EL BOTÓN ACCIONES EN "ADMINISTRAR VENTAS" -------- */
+    function abrirModalAccionesVenta(id) {
+        const v = ventasCache.find(venta => venta.ID === id);
+        if (!v) {
+            alert("No se encontró la información de esta factura.");
+            return;
+        }
+
+        document.getElementById('accFacturaID').innerText = v.ID;
+        document.getElementById('accFacturaCliente').innerText = v.Cliente;
+        document.getElementById('accFacturaFecha').innerText = v.Fecha;
+        document.getElementById('accFacturaTotal').innerText = '$' + (parseFloat(v.Total) || 0).toFixed(2);
+        document.getElementById('accFacturaProductos').innerText = v.Detalle || "No hay productos registrados";
+        
+        // Enlazar los botones de acción del modal
+        document.getElementById('btnEliminarFactura').onclick = () => eliminarFactura(v.ID);
+        document.getElementById('btnEditarFactura').onclick = () => editarFactura(v.ID);
+        
+        const myModal = new bootstrap.Modal(document.getElementById('modalAccionesVenta'));
+        myModal.show();
+    }
+
+    async function eliminarFactura(id) {
+        if (!confirm(`¿Estás seguro de que deseas ELIMINAR permanentemente la factura ${id}? Esta acción no se puede deshacer.`)) return;
+        
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({ action: 'deleteVenta', id: id })
+            });
+            alert(`Petición para eliminar la factura ${id} enviada exitosamente.`);
+            bootstrap.Modal.getInstance(document.getElementById('modalAccionesVenta')).hide();
+            cargarHistorialVentas(); // Recargar la tabla
+            cargarDashboard(); // Actualizar métricas
+        } catch (error) {
+            alert("Error al intentar comunicarse con el servidor para eliminar la factura.");
+        }
+    }
+
+    function editarFactura(id) {
+        // Aquí puedes desarrollar la lógica compleja de edición o habilitar un formulario
+        alert(`La función para modificar/editar la factura ${id} está en desarrollo. \n\nEsta acción requiere validar los ajustes de inventario, devoluciones de stock y recalculo en caja.`);
+    }
+    /* --------------------------------------------------------------------------------- */
 
    async function cargarProductos() {
         const tbodyStock = document.querySelector('#tablaProductos tbody');
