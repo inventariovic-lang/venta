@@ -326,6 +326,18 @@
                     </div>
                 </div>
             </div>
+
+            <div class="row mt-4 mb-2">
+                <div class="col-12 col-md-8 mx-auto">
+                    <div class="card-app p-4 shadow-sm" style="background-color: var(--app-bg); border-radius: var(--radius-card);">
+                        <h6 class="fw-bold text-muted mb-3 text-center text-uppercase"><i class="fa fa-chart-bar text-success me-2"></i>Top 5 Productos Más Vendidos</h6>
+                        <div style="position: relative; height:250px; width:100%">
+                            <canvas id="graficaProductosVendidos"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </section>
 
         <section id="view-categorias" class="view-section">
@@ -416,16 +428,7 @@
                     <button class="btn-app-yellow text-nowrap" onclick="switchView('ventas_lista')"><i class="fa fa-plus"></i> Nueva venta</button>
                 </div>
             </div>
-            <div class="row mb-4">
-                <div class="col-12 col-md-8 mx-auto">
-                    <div class="card-app p-4 shadow-sm" style="background-color: var(--app-bg); border-radius: var(--radius-card);">
-                        <h6 class="fw-bold text-muted mb-3 text-center text-uppercase"><i class="fa fa-chart-bar text-success me-2"></i>Top 5 Productos Más Vendidos</h6>
-                        <div style="position: relative; height:250px; width:100%">
-                            <canvas id="graficaProductosVendidos"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            
             <div class="card-app">
                 <div class="table-responsive">
                     <table class="table table-hover" id="tablaHistorialVentas">
@@ -1115,6 +1118,7 @@
         cargarClientes(); 
         cargarDashboard(); 
         cargarCategorias(); 
+        cargarHistorialVentas(); // <- Añadido para que la gráfica cargue al iniciar la App
     };
 
     async function cargarCategorias() {
@@ -1191,7 +1195,6 @@
         }
     });
 
-    // NUEVA FUNCIÓN PARA GENERAR LOS REPORTES DE CAJA
     async function cargarReportes() {
         const contenedor = document.getElementById('contenedor-reportes');
         if (!contenedor) return;
@@ -1206,7 +1209,6 @@
             let totalGeneral = 0;
 
             ventas.forEach(v => {
-                // Buscamos la columna de método de pago sea cual sea el nombre en la hoja
                 const metodoPago = v["Metodo Pago"] || v["Método Pago"] || v.Metodo || v.Tipo || "No Especificado"; 
                 const monto = parseFloat(v.Total) || 0;
 
@@ -1244,22 +1246,19 @@
         }
     }
 
-    // Variable global para evitar que las gráficas se superpongan al recargar
     let chartVentas = null; 
 
     function generarGraficaMasVendidos(ventas) {
         let conteoProductos = {};
         
-        // 1. Recorremos todas las ventas y extraemos los productos
         ventas.forEach(v => {
             if (!v.Detalle) return;
             
-            // ---> EXPRESIÓN REGULAR ACTUALIZADA PARA LEER EL FORMATO "1x Glup 2lt" <---
             let coincidencias = [...v.Detalle.matchAll(/(\d+)[xX]\s+([^,]+)/g)];
             
             coincidencias.forEach(match => {
-                let cantidad = parseInt(match[1]); // Extrae el número (1)
-                let nombre = match[2].trim(); // Extrae el nombre (Glup 2lt)
+                let cantidad = parseInt(match[1]); 
+                let nombre = match[2].trim(); 
                 
                 if (conteoProductos[nombre]) {
                     conteoProductos[nombre] += cantidad;
@@ -1269,24 +1268,22 @@
             });
         });
 
-        // 2. Ordenar de mayor a menor y tomar solo los 5 más vendidos
         let productosOrdenados = Object.keys(conteoProductos)
             .map(nombre => ({ nombre, cantidad: conteoProductos[nombre] }))
             .sort((a, b) => b.cantidad - a.cantidad)
-            .slice(0, 5); // Puedes cambiar este número para mostrar Top 10, etc.
+            .slice(0, 5); 
 
         let labels = productosOrdenados.map(p => p.nombre);
         let data = productosOrdenados.map(p => p.cantidad);
 
-        // 3. Renderizar o actualizar la gráfica con Chart.js
         const ctx = document.getElementById('graficaProductosVendidos').getContext('2d');
         
         if (chartVentas) {
-            chartVentas.destroy(); // Destruye la anterior si ya existía
+            chartVentas.destroy(); 
         }
 
         chartVentas = new Chart(ctx, {
-            type: 'bar', // Tipo de gráfica
+            type: 'bar', 
             data: {
                 labels: labels,
                 datasets: [{
@@ -1304,11 +1301,11 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { precision: 0 } // Evita decimales en la cantidad
+                        ticks: { precision: 0 } 
                     }
                 },
                 plugins: {
-                    legend: { display: false } // Oculta la leyenda superior
+                    legend: { display: false } 
                 }
             }
         });
