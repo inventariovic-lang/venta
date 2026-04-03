@@ -749,13 +749,24 @@
             const fechaSeleccionada = document.getElementById('filtroFechaReporte').value;
             if (fechaSeleccionada) {
                 const [year, month, day] = fechaSeleccionada.split('-');
+                
                 ventasFiltradas = ventasCache.filter(v => {
                     if (!v.Fecha) return false;
-                    const fStr = v.Fecha.toString();
-                    return fStr.includes(`${year}-${month}-${day}`) || 
-                           fStr.includes(`${day}/${month}/${year}`) || 
-                           fStr.includes(`${month}/${day}/${year}`) ||
-                           fStr.startsWith(`${year}-${month}-${day}`);
+                    const fStr = v.Fecha.toString().trim();
+                    
+                    // Comprobar formato nativo YYYY-MM-DD
+                    if (fStr.startsWith(`${year}-${month}-${day}`)) return true;
+                    
+                    // Comprobar formato de Google Sheets DD/MM/YYYY o D/M/YYYY
+                    const fechaPart = fStr.split(' ')[0]; 
+                    const partes = fechaPart.split('/');
+                    if (partes.length === 3) {
+                        const d = partes[0].padStart(2, '0');
+                        const m = partes[1].padStart(2, '0');
+                        const y = partes[2];
+                        return (d === day && m === month && y === year);
+                    }
+                    return false;
                 });
             }
             textoEtiqueta = "Total Día: ";
@@ -764,12 +775,23 @@
             const mesSeleccionado = document.getElementById('filtroMesReporte').value; 
             if (mesSeleccionado) {
                 const [year, month] = mesSeleccionado.split('-');
+                
                 ventasFiltradas = ventasCache.filter(v => {
                     if (!v.Fecha) return false;
-                    const fStr = v.Fecha.toString();
-                    return fStr.includes(`${year}-${month}`) || 
-                           fStr.includes(`/${month}/${year}`) || 
-                           fStr.match(new RegExp(`^${month}/\\d{1,2}/${year}`));
+                    const fStr = v.Fecha.toString().trim();
+                    
+                    // Comprobar formato nativo YYYY-MM
+                    if (fStr.startsWith(`${year}-${month}`)) return true;
+                    
+                    // Comprobar formato de Google Sheets DD/MM/YYYY o D/M/YYYY
+                    const fechaPart = fStr.split(' ')[0]; 
+                    const partes = fechaPart.split('/');
+                    if (partes.length === 3) {
+                        const m = partes[1].padStart(2, '0');
+                        const y = partes[2];
+                        return (m === month && y === year);
+                    }
+                    return false;
                 });
             }
             textoEtiqueta = "Total Mes: ";
