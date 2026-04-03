@@ -26,6 +26,28 @@
             color: var(--text-main);
             overflow-x: hidden; 
         }
+
+        /* ----- PANTALLA DE LOGIN ----- */
+        #loginOverlay {
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100vw; height: 100vh;
+            background-color: var(--app-gray); 
+            z-index: 9999;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+        .login-card {
+            width: 100%; max-width: 400px;
+            background: #fff; 
+            padding: 40px;
+            border-radius: var(--radius-card);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid #eaeaea;
+        }
+        .d-none-role { display: none !important; }
+        /* ----------------------------- */
         
         .wrapper { display: flex; height: 100vh; }
         
@@ -225,9 +247,43 @@
             .close-sidebar-btn { display: block; }
             .search-pill { display: none; } 
         }
+/* Estilo para el GIF del Sidebar */
+        .sidebar-gif {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            margin-right: 10px;
+        }
+
     </style>
 </head>
 <body>
+
+<div id="loginOverlay">
+    <div class="login-card text-center">
+ <div class="mb-2">
+            
+        </div>
+        <div class="d-flex justify-content-center align-items-center mb-4 text-dark fs-3 fw-bold">
+            <img src="https://github.com/inventariovic-lang/venta/blob/main/STK.gif?raw=true" alt="Logo animado" class="login-gif" style="width: 50%; height: 50%;">
+        </div>
+        <h5 class="fw-bold mb-4 text-muted">Acceso al Sistema</h5>
+        <form id="formLogin" onsubmit="procesarLogin(event)">
+            <div class="mb-3">
+                <input type="text" id="loginUser" class="form-control bg-light border-0 p-3 rounded-pill" placeholder="Usuario" autocomplete="off" required>
+            </div>
+            <div class="mb-4">
+                <input type="password" id="loginPass" class="form-control bg-light border-0 p-3 rounded-pill" placeholder="Contraseña" required>
+            </div>
+            <button type="submit" class="btn-app-yellow w-100 fs-5 mb-4 py-2">Ingresar</button>
+        </form>
+        <div class="text-muted small text-start bg-light p-3 rounded-4">
+            <p class="mb-1"><i class="fa fa-info-circle me-1"></i><strong>Acceso Valido requerido</strong></p>
+            <p class="mb-1 ms-3">------------ <code></code> ---------------- <code></code></p>
+            <p class="mb-0 ms-3"> <code></code>  <code></code></p>
+        </div>
+    </div>
+</div>
 
 <div class="wrapper">
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
@@ -241,20 +297,20 @@
         
         <div class="mt-3"></div>
 
-        <div class="nav-item active" onclick="switchView('inicio', this)">
+        <div class="nav-item active admin-only" id="nav-inicio" onclick="switchView('inicio', this)">
             <div><i class="fa fa-home me-3"></i> Inicio</div>
         </div>
 
-        <div class="nav-item" data-bs-toggle="collapse" data-bs-target="#menu-almacen">
+        <div class="nav-item admin-only" data-bs-toggle="collapse" data-bs-target="#menu-almacen">
             <div><i class="fa fa-box-open me-3"></i> Almacén</div>
             <i class="fa fa-angle-down"></i>
         </div>
-        <div class="collapse sidebar-submenu" id="menu-almacen">
+        <div class="collapse sidebar-submenu admin-only" id="menu-almacen">
             <div class="nav-sub-item" onclick="switchView('productos', this)">Artículos</div>
             <div class="nav-sub-item" onclick="switchView('categorias', this)">Categorías</div>
         </div>
 
-        <div class="nav-item" onclick="switchView('clientes', this)">
+        <div class="nav-item admin-only" onclick="switchView('clientes', this)">
             <div><i class="fa fa-user-friends me-3"></i> Clientes</div>
         </div>
 
@@ -262,11 +318,11 @@
             <div><i class="fa fa-receipt me-3"></i> Ventas</div>
             <i class="fa fa-angle-down"></i>
         </div>
-        <div class="collapse sidebar-submenu" id="menu-ventas">
-            <div class="nav-sub-item" onclick="switchView('ventas_lista', this)">Crear Venta</div>
-            <div class="nav-sub-item" onclick="switchView('administrar_ventas', this)">Administrar ventas</div>           
-            <div class="nav-sub-item" onclick="switchView('ventas_credito', this)">Ventas a Crédito</div>
-            <div class="nav-sub-item" onclick="switchView('reportes', this)">Reportes de Caja</div>
+        <div class="collapse sidebar-submenu show" id="menu-ventas">
+            <div class="nav-sub-item" id="nav-ventas-lista" onclick="switchView('ventas_lista', this)">Crear Venta</div>
+            <div class="nav-sub-item admin-only" onclick="switchView('administrar_ventas', this)">Administrar ventas</div>           
+            <div class="nav-sub-item admin-only" onclick="switchView('ventas_credito', this)">Ventas a Crédito</div>
+            <div class="nav-sub-item admin-only" onclick="switchView('reportes', this)">Reportes de Caja</div>
         </div>
     </aside>
 
@@ -279,7 +335,10 @@
                 <div class="bg-light rounded-circle p-2 me-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
                     <i class="fa fa-user text-dark"></i>
                 </div>
-                Admin
+                <span id="nombreUsuarioActivo">Admin</span>
+                <button class="btn btn-sm btn-outline-danger ms-3 rounded-pill px-3" onclick="cerrarSesion()" title="Cerrar Sesión">
+                    <i class="fa fa-sign-out-alt"></i> Salir
+                </button>
             </div>
         </header>
 
@@ -455,7 +514,7 @@
                         <form id="formCrearVenta">
                             <div class="input-group mb-3">
                                 <span class="input-group-text bg-light border-0"><i class="fa fa-user"></i></span>
-                                <input type="text" class="form-control border-0 bg-light" value="Administrador" readonly>
+                                <input type="text" id="vendedorActual" class="form-control border-0 bg-light" value="Administrador" readonly>
                             </div>
                             
                             <div class="input-group mb-3">
@@ -643,6 +702,48 @@
     let productosCache = []; 
     let clientesCache = [];
     let ventasCache = []; 
+
+    /* ----- SISTEMA DE USUARIOS ----- */
+    const usuariosBD = {
+        'admin': { clave: 'v1ct18', rol: 'admin', nombre: 'Administrador' },
+        'ventas': { clave: 'ventas', rol: 'ventas', nombre: 'Vendedor' }
+    };
+
+    function procesarLogin(e) {
+        e.preventDefault();
+        const user = document.getElementById('loginUser').value.toLowerCase().trim();
+        const pass = document.getElementById('loginPass').value;
+        
+        if (usuariosBD[user] && usuariosBD[user].clave === pass) {
+            iniciarSesion(usuariosBD[user]);
+        } else {
+            alert("Usuario o contraseña incorrectos.");
+        }
+    }
+
+    function iniciarSesion(usuario) {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('nombreUsuarioActivo').innerText = usuario.nombre;
+        document.getElementById('vendedorActual').value = usuario.nombre;
+
+        // Gestión de permisos visuales
+        if (usuario.rol === 'ventas') {
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.add('d-none-role'));
+            // Forzar vista a Crear Venta para el vendedor
+            switchView('ventas_lista', document.getElementById('nav-ventas-lista'));
+        } else {
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('d-none-role'));
+            // Forzar vista a Dashboard para el administrador
+            switchView('inicio', document.getElementById('nav-inicio'));
+        }
+    }
+
+    function cerrarSesion() {
+        document.getElementById('loginOverlay').style.display = 'flex';
+        document.getElementById('formLogin').reset();
+        document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+    }
+    /* ------------------------------- */
 
     function toggleMenu() { document.getElementById('sidebar').classList.toggle('show'); }
 
@@ -929,6 +1030,7 @@
         e.preventDefault();
         const cli = document.getElementById('selectCliente').value;
         const metodo = document.getElementById('selectMetodoPago').value;
+        const vendedorActivo = document.getElementById('vendedorActual').value;
         
         if (!cli || carrito.length === 0) { alert("Faltan datos (Cliente o Productos)"); return; }
         
@@ -947,7 +1049,8 @@
                     carrito: carrito, 
                     total: totalVentaActual,
                     detalle: detalleTexto,
-                    metodoPago: metodo 
+                    metodoPago: metodo,
+                    vendedor: vendedorActivo
                 }) 
             });
             alert("¡Venta procesada exitosamente!");
