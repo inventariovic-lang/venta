@@ -100,7 +100,6 @@
         .nav-sub-item:hover {
             background-color: var(--app-gray);
             color: var(--text-main);
-	   
         }
 
         /* Contenido Principal y Navbar */
@@ -155,7 +154,7 @@
             overflow: hidden;
         }
 
-        /* Cajas de Estadísticas (Botones cuadrados de la imagen) */
+        /* Cajas de Estadísticas */
         .stat-box { 
             background: #fff; 
             border-radius: var(--radius-btn); 
@@ -355,7 +354,7 @@
                         <table class="table table-hover align-middle mb-0" id="tablaCategorias">
                             <thead class="bg-light">
                                 <tr>
-                                    <th class="ps-4">Nº</th>
+                                    <th class="ps-4 d-none">Nº</th>
                                     <th>Nombre de la Categoría</th>
                                     <th class="text-center">Acciones</th>
                                 </tr>
@@ -380,7 +379,7 @@
                 <div class="table-responsive">
                     <table class="table table-hover mb-0" id="tablaVentasCredito">
                         <thead>
-                            <tr><th>#</th><th>Factura</th><th>Cliente</th><th>Total USD</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
+                            <tr><th class="d-none">#</th><th>Factura</th><th>Cliente</th><th>Total USD</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
                         </thead>
                         <tbody></tbody>
                     </table>
@@ -411,7 +410,7 @@
             <div class="card-app">
                 <div class="table-responsive">
                     <table class="table table-hover" id="tablaProductos">
-                        <thead><tr><th>#</th><th>Código</th><th>Descripción</th><th>Categoría</th><th>Stock</th><th>Precio</th><th>Acciones</th></tr></thead>
+                        <thead><tr><th class="d-none">#</th><th>Código</th><th>Descripción</th><th>Categoría</th><th>Stock</th><th>Precio</th><th>Acciones</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -504,7 +503,7 @@
                         <div class="table-responsive">
                             <table class="table table-hover" id="tablaVentaProductos">
                                 <thead>
-                                    <tr><th>#</th><th>Código</th><th>Descripción</th><th>Stock</th><th>Acción</th></tr>
+                                    <tr><th class="d-none">#</th><th>Código</th><th>Descripción</th><th>Stock</th><th>Acción</th></tr>
                                 </thead>
                                 <tbody></tbody>
                             </table>
@@ -658,14 +657,13 @@
         if(viewId === 'clientes' || viewId === 'ventas_lista') cargarClientes();
         if(viewId === 'administrar_ventas') cargarHistorialVentas();
         if(viewId === 'ventas_credito') cargarVentasCredito(); 
-        
-        // Carga la nueva función de reportes al hacer clic en el menú
         if(viewId === 'reportes') cargarReportes(); 
+        if(viewId === 'categorias') cargarCategorias(); 
     }
 
     async function cargarDashboard() {
         try {
-            const res = await fetch(`${API_URL}?action=getDashboardData`);
+            const res = await fetch(`${API_URL}?action=getDashboardData&_=${new Date().getTime()}`);
             const data = await res.json();
             document.getElementById('dash-ventas').innerText = '$ ' + data.totalVentas.toFixed(2);
             if (data.totalClientes !== undefined) {
@@ -680,7 +678,7 @@
         const dashClientes = document.getElementById('dash-clientes');
         
         try {
-            const res = await fetch(`${API_URL}?action=getClientes`);
+            const res = await fetch(`${API_URL}?action=getClientes&_=${new Date().getTime()}`);
             const clientes = await res.json();
             clientesCache = clientes;
 
@@ -710,133 +708,81 @@
         new bootstrap.Modal(document.getElementById('modalCliente')).show();
     }
 
-    // Reemplazar la función cargarHistorialVentas() existente por esta:
-async function cargarHistorialVentas() {
-    const tbody = document.querySelector('#tablaHistorialVentas tbody');
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Cargando historial de ventas...</td></tr>';
-    
-    try {
-        const res = await fetch(`${API_URL}?action=getVentas`);
-        ventasCache = await res.json(); 
+    async function cargarHistorialVentas() {
+        const tbody = document.querySelector('#tablaHistorialVentas tbody');
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">Cargando historial de ventas...</td></tr>';
         
-        const inputFecha = document.getElementById('filtroFechaReporte');
-        const inputMes = document.getElementById('filtroMesReporte');
-        
-        // Carga por defecto el día de hoy si no hay nada seleccionado
-        if (!inputFecha.value && !inputMes.value) {
-            const hoy = new Date();
-            const offset = hoy.getTimezoneOffset() * 60000;
-            const fechaLocal = new Date(hoy.getTime() - offset).toISOString().split('T')[0];
-            inputFecha.value = fechaLocal;
-            filtrarHistorial('dia');
-        } else if (inputMes.value) {
-            filtrarHistorial('mes');
-        } else {
-            filtrarHistorial('dia');
-        }
-        
-        generarGraficaMasVendidos(ventasCache);
-        
-    } catch (e) { 
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Error al conectar con la base de datos</td></tr>'; 
-    }
-}
-
-// Eliminar filtrarReporteDiario() y añadir esta nueva función unificada:
-function filtrarHistorial(tipo) {
-    const tbody = document.querySelector('#tablaHistorialVentas tbody');
-    let ventasFiltradas = ventasCache;
-    let totalSuma = 0;
-    let textoEtiqueta = "Total: ";
-
-    if (tipo === 'dia') {
-        document.getElementById('filtroMesReporte').value = ''; // Limpiamos el mes
-        const fechaSeleccionada = document.getElementById('filtroFechaReporte').value;
-        if (fechaSeleccionada) {
-            const [year, month, day] = fechaSeleccionada.split('-');
-            ventasFiltradas = ventasCache.filter(v => {
-                if (!v.Fecha) return false;
-                const fStr = v.Fecha.toString();
-                return fStr.includes(`${year}-${month}-${day}`) || 
-                       fStr.includes(`${day}/${month}/${year}`) || 
-                       fStr.includes(`${month}/${day}/${year}`) ||
-                       fStr.startsWith(`${year}-${month}-${day}`);
-            });
-        }
-        textoEtiqueta = "Total Día: ";
-    } else if (tipo === 'mes') {
-        document.getElementById('filtroFechaReporte').value = ''; // Limpiamos el día
-        const mesSeleccionado = document.getElementById('filtroMesReporte').value; // Formato YYYY-MM
-        if (mesSeleccionado) {
-            const [year, month] = mesSeleccionado.split('-');
-            ventasFiltradas = ventasCache.filter(v => {
-                if (!v.Fecha) return false;
-                const fStr = v.Fecha.toString();
-                // Busca coincidencias de mes/año en distintos formatos posibles de Google Sheets
-                return fStr.includes(`${year}-${month}`) || 
-                       fStr.includes(`/${month}/${year}`) || 
-                       fStr.match(new RegExp(`^${month}/\\d{1,2}/${year}`));
-            });
-        }
-        textoEtiqueta = "Total Mes: ";
-    }
-
-    tbody.innerHTML = '';
-    
-    if (ventasFiltradas.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No hay ventas registradas para el filtro seleccionado.</td></tr>';
-    } else {
-        ventasFiltradas.forEach((v, i) => {
-            const monto = parseFloat(v.Total) || 0;
-            totalSuma += monto;
+        try {
+            const res = await fetch(`${API_URL}?action=getVentas&_=${new Date().getTime()}`);
+            ventasCache = await res.json(); 
             
-            tbody.innerHTML += `
-                <tr>
-                    <td>${i+1}</td>
-                    <td class="fw-bold">${v.ID || '---'}</td>
-                    <td>${v.Cliente || 'Consumidor Final'}</td>
-                    <td>Administrador</td>
-                    <td class="fw-bold text-success">$${monto.toFixed(2)}</td> 
-                    <td style="font-size: 0.85rem;" class="text-muted">${v.Detalle || '---'}</td>
-                    <td>${v.Fecha || '---'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-dark rounded-pill px-3"><i class="fa fa-ticket"></i></button>
-                    </td>
-                </tr>`;
-        });
+            const inputFecha = document.getElementById('filtroFechaReporte');
+            const inputMes = document.getElementById('filtroMesReporte');
+            
+            if (!inputFecha.value && !inputMes.value) {
+                const hoy = new Date();
+                const offset = hoy.getTimezoneOffset() * 60000;
+                const fechaLocal = new Date(hoy.getTime() - offset).toISOString().split('T')[0];
+                inputFecha.value = fechaLocal;
+                filtrarHistorial('dia');
+            } else if (inputMes.value) {
+                filtrarHistorial('mes');
+            } else {
+                filtrarHistorial('dia');
+            }
+            
+            generarGraficaMasVendidos(ventasCache);
+            
+        } catch (e) { 
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger py-4">Error al conectar con la base de datos</td></tr>'; 
+        }
     }
 
-    // Actualiza la etiqueta (Total Día o Total Mes) y el monto
-    document.getElementById('total-diario').innerText = `${textoEtiqueta}$${totalSuma.toFixed(2)}`;
-}
-
-    function filtrarReporteDiario() {
-        const fechaSeleccionada = document.getElementById('filtroFechaReporte').value;
+    function filtrarHistorial(tipo) {
         const tbody = document.querySelector('#tablaHistorialVentas tbody');
         let ventasFiltradas = ventasCache;
-        let totalSumaDiaria = 0;
+        let totalSuma = 0;
+        let textoEtiqueta = "Total: ";
 
-        if (fechaSeleccionada) {
-            const [year, month, day] = fechaSeleccionada.split('-');
-            
-            ventasFiltradas = ventasCache.filter(v => {
-                if (!v.Fecha) return false;
-                const fStr = v.Fecha.toString();
-                return fStr.includes(`${year}-${month}-${day}`) || 
-                       fStr.includes(`${day}/${month}/${year}`) || 
-                       fStr.includes(`${month}/${day}/${year}`) ||
-                       fStr.startsWith(`${year}-${month}-${day}`);
-            });
+        if (tipo === 'dia') {
+            document.getElementById('filtroMesReporte').value = ''; 
+            const fechaSeleccionada = document.getElementById('filtroFechaReporte').value;
+            if (fechaSeleccionada) {
+                const [year, month, day] = fechaSeleccionada.split('-');
+                ventasFiltradas = ventasCache.filter(v => {
+                    if (!v.Fecha) return false;
+                    const fStr = v.Fecha.toString();
+                    return fStr.includes(`${year}-${month}-${day}`) || 
+                           fStr.includes(`${day}/${month}/${year}`) || 
+                           fStr.includes(`${month}/${day}/${year}`) ||
+                           fStr.startsWith(`${year}-${month}-${day}`);
+                });
+            }
+            textoEtiqueta = "Total Día: ";
+        } else if (tipo === 'mes') {
+            document.getElementById('filtroFechaReporte').value = ''; 
+            const mesSeleccionado = document.getElementById('filtroMesReporte').value; 
+            if (mesSeleccionado) {
+                const [year, month] = mesSeleccionado.split('-');
+                ventasFiltradas = ventasCache.filter(v => {
+                    if (!v.Fecha) return false;
+                    const fStr = v.Fecha.toString();
+                    return fStr.includes(`${year}-${month}`) || 
+                           fStr.includes(`/${month}/${year}`) || 
+                           fStr.match(new RegExp(`^${month}/\\d{1,2}/${year}`));
+                });
+            }
+            textoEtiqueta = "Total Mes: ";
         }
 
         tbody.innerHTML = '';
         
         if (ventasFiltradas.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No hay ventas registradas para la fecha seleccionada.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No hay ventas registradas para el filtro seleccionado.</td></tr>';
         } else {
             ventasFiltradas.forEach((v, i) => {
                 const monto = parseFloat(v.Total) || 0;
-                totalSumaDiaria += monto;
+                totalSuma += monto;
                 
                 tbody.innerHTML += `
                     <tr>
@@ -854,7 +800,7 @@ function filtrarHistorial(tipo) {
             });
         }
 
-        document.getElementById('total-diario').innerText = `Total Día: $${totalSumaDiaria.toFixed(2)}`;
+        document.getElementById('total-diario').innerText = `${textoEtiqueta}$${totalSuma.toFixed(2)}`;
     }
 
    async function cargarProductos() {
@@ -863,24 +809,23 @@ function filtrarHistorial(tipo) {
         if(tbodyStock) tbodyStock.innerHTML = '<tr><td colspan="7" class="text-center py-4">Cargando...</td></tr>';
         
         try {
-            const res = await fetch(`${API_URL}?action=getProductos`);
+            const res = await fetch(`${API_URL}?action=getProductos&_=${new Date().getTime()}`);
             let productos = await res.json();
             
-            // ORDENAR GLOBALMENTE: De menor a mayor existencia (Stock)
             productos.sort((a, b) => parseFloat(a.Stock) - parseFloat(b.Stock));
-            
-            productosCache = productos; // Sincroniza el caché con el nuevo orden
+            productosCache = productos; 
             
             if(tbodyStock) {
                 tbodyStock.innerHTML = '';
                 productos.forEach((p, i) => {
                     const precioFormateado = p.Precio ? parseFloat(p.Precio).toFixed(2) : "0.00";
-                    // Se mantiene el índice (i) para que coincida con productosCache al editar
+                    const categoriaProd = p.Categoria || p.Categoría || p.categoria || p.categoría || '---';
+                    
                     tbodyStock.innerHTML += `<tr>
-                        <td>${i+1}</td>
+                        <td class="d-none">${i+1}</td>
                         <td class="fw-bold text-muted">${p.Codigo}</td>
                         <td class="fw-bold">${p.Descripcion}</td>
-                        <td>${p.Categoria || '---'}</td>
+                        <td>${categoriaProd}</td>
                         <td><span class="badge rounded-pill ${p.Stock <= 10 ? 'bg-danger' : 'bg-success'} px-3">${p.Stock}</span></td>
                         <td class="fw-bold text-success">$${precioFormateado}</td>
                         <td><button class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="prepararEdicion(${i})"><i class="fa fa-pencil"></i></button></td>
@@ -890,14 +835,13 @@ function filtrarHistorial(tipo) {
             
             if(tbodyVentas) {
                 tbodyVentas.innerHTML = '';
-                // Aquí ya no hace falta el sort local porque "productos" ya viene ordenado
                 productos.forEach((p, i) => {
                     let btn = p.Stock > 0 
                         ? `<button type="button" class="btn btn-dark btn-sm rounded-pill px-3" onclick="agregarAlCarrito('${p.Codigo}', '${p.Descripcion}', ${p.Precio}, ${p.Stock})">Agregar</button>` 
                         : `<button class="btn btn-secondary btn-sm rounded-pill px-3" disabled>Agotado</button>`;
                     
                     tbodyVentas.innerHTML += `<tr>
-                        <td>${i+1}</td>
+                        <td class="d-none">${i+1}</td>
                         <td class="text-muted small">${p.Codigo}</td>
                         <td class="fw-bold">${p.Descripcion}</td>
                         <td><span class="badge rounded-pill ${p.Stock <= 5 ? 'bg-danger' : 'bg-success'}">${p.Stock}</span></td>
@@ -969,7 +913,6 @@ function filtrarHistorial(tipo) {
         const btn = document.getElementById('btnGuardarVenta');
         btn.innerHTML = 'Procesando...'; btn.disabled = true;
 
-        // -> Adaptamos el detalle al formato "1x Producto" que tienes en tu base de datos
         const detalleTexto = carrito.map(i => `${i.cantidad}x ${i.descripcion}`).join(', ');
 
         try {
@@ -1010,9 +953,21 @@ function filtrarHistorial(tipo) {
         document.getElementById('form_action').value = 'editProducto';
         document.getElementById('cod').value = p.Codigo;
         document.getElementById('desc').value = p.Descripcion;
-        document.getElementById('cate').value = p.Categoria || 'General';
-        document.getElementById('stock').value = p.Stock;
         
+        const catValue = p.Categoria || p.Categoría || p.categoria || p.categoría || 'General';
+        const cateSelect = document.getElementById('cate');
+        
+        let optionExists = false;
+        for(let i=0; i < cateSelect.options.length; i++) {
+            if(cateSelect.options[i].value === catValue) { optionExists = true; break; }
+        }
+        if(!optionExists && catValue !== '---' && catValue !== '') {
+            cateSelect.innerHTML += `<option value="${catValue}">${catValue}</option>`;
+        }
+        
+        cateSelect.value = catValue;
+        
+        document.getElementById('stock').value = p.Stock;
         document.getElementById('precio').value = parseFloat(p.Precio).toFixed(2);
         
         document.getElementById('modalTitle').innerText = 'Editar Artículo';
@@ -1074,7 +1029,7 @@ function filtrarHistorial(tipo) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Cargando cuentas por cobrar...</td></tr>';
         
         try {
-            const res = await fetch(`${API_URL}?action=getVentas`);
+            const res = await fetch(`${API_URL}?action=getVentas&_=${new Date().getTime()}`);
             const ventas = await res.json();
             
             const creditos = ventas.filter(v => {
@@ -1112,7 +1067,7 @@ function filtrarHistorial(tipo) {
 
                 tbody.innerHTML += `
                     <tr>
-                        <td>${i+1}</td>
+                        <td class="d-none">${i+1}</td>
                         <td>
                             <a href="javascript:void(0)" onclick="abrirModalDetalle(${i})" class="badge bg-light text-dark border text-decoration-none px-3 rounded-pill" title="Ver Detalle">
                                 <i class="fa fa-search"></i> ${v.ID || '---'}
@@ -1199,7 +1154,7 @@ function filtrarHistorial(tipo) {
         cargarClientes(); 
         cargarDashboard(); 
         cargarCategorias(); 
-        cargarHistorialVentas(); // <- Añadido para que la gráfica cargue al iniciar la App
+        cargarHistorialVentas(); 
     };
 
     async function cargarCategorias() {
@@ -1209,24 +1164,42 @@ function filtrarHistorial(tipo) {
         if (tbody) tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4">Cargando categorías...</td></tr>';
         
         try {
-            const res = await fetch(`${API_URL}?action=getCategorias`);
+            const res = await fetch(`${API_URL}?action=getCategorias&t=${new Date().getTime()}`);
             const categorias = await res.json();
             
             if (tbody) tbody.innerHTML = '';
-            if (selectCate) selectCate.innerHTML = '<option value="">Seleccione una categoría...</option>';
+            if (selectCate) selectCate.innerHTML = '<option value="General">General</option>';
             
-            if (categorias.length === 0 && tbody) {
+            let listaValida = [];
+            if (Array.isArray(categorias)) {
+                listaValida = categorias.filter(c => {
+                    let n = typeof c === 'object' ? (c.Nombre || c.Categoria || c.Categoría || c.nombre || c.categoria) : c;
+                    if (Array.isArray(c)) n = c[0];
+                    return n && n.toString().trim() !== '' && n !== 'Nombre' && n !== 'Categoría' && n !== 'Categoria';
+                });
+            } else if (categorias && Array.isArray(categorias.data)) {
+                listaValida = categorias.data;
+            }
+
+            if (listaValida.length === 0 && tbody) {
                 tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted">No hay categorías registradas.</td></tr>';
                 return;
             }
 
-            categorias.forEach((c, i) => {
-                const nombreCat = c.Nombre || c.Categoria || c.nombre || "Sin Nombre";
+            listaValida.forEach((c, i) => {
+                let nombreCat = "Sin Nombre";
+                if (typeof c === 'object') {
+                    nombreCat = c.Nombre || c.Categoria || c.Categoría || c.nombre || c.categoria || c.categoría || "Sin Nombre";
+                } else if (Array.isArray(c)) {
+                    nombreCat = c[0];
+                } else if (typeof c === 'string') {
+                    nombreCat = c;
+                }
                 
                 if (tbody) {
                     tbody.innerHTML += `
                         <tr>
-                            <td class="ps-4">${i+1}</td>
+                            <td class="ps-4 d-none">${i+1}</td>
                             <td class="fw-bold">${nombreCat}</td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar (Próximamente)">
@@ -1236,8 +1209,11 @@ function filtrarHistorial(tipo) {
                         </tr>`;
                 }
                 
-                if (selectCate) {
-                    selectCate.innerHTML += `<option value="${nombreCat}">${nombreCat}</option>`;
+                if (selectCate && nombreCat !== "General") {
+                    let optionExists = Array.from(selectCate.options).some(opt => opt.value === nombreCat);
+                    if (!optionExists) {
+                        selectCate.innerHTML += `<option value="${nombreCat}">${nombreCat}</option>`;
+                    }
                 }
             });
             
@@ -1283,7 +1259,7 @@ function filtrarHistorial(tipo) {
         contenedor.innerHTML = '<div class="col-12 text-center mt-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x mb-3"></i><br><h5>Calculando y separando ingresos...</h5></div>';
 
         try {
-            const res = await fetch(`${API_URL}?action=getVentas`);
+            const res = await fetch(`${API_URL}?action=getVentas&_=${new Date().getTime()}`);
             const ventas = await res.json();
 
             const totalesPorMetodo = {};
