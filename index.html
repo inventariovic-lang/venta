@@ -503,7 +503,7 @@
                         <div class="table-responsive">
                             <table class="table table-hover" id="tablaVentaProductos">
                                 <thead>
-                                    <tr><th class="d-none">#</th><th>Código</th><th>Descripción</th><th>Stock</th><th>Acción</th></tr>
+                                    <tr><th class="d-none">#</th><th class="d-none">Código</th><th>Descripción</th><th>Stock</th><th>Acción</th></tr>
                                 </thead>
                                 <tbody></tbody>
                             </table>
@@ -842,7 +842,7 @@
                     
                     tbodyVentas.innerHTML += `<tr>
                         <td class="d-none">${i+1}</td>
-                        <td class="text-muted small">${p.Codigo}</td>
+                        <td class="text-muted small d-none">${p.Codigo}</td>
                         <td class="fw-bold">${p.Descripcion}</td>
                         <td><span class="badge rounded-pill ${p.Stock <= 5 ? 'bg-danger' : 'bg-success'}">${p.Stock}</span></td>
                         <td>${btn}</td>
