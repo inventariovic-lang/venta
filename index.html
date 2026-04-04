@@ -535,7 +535,7 @@
                                 </select>
                             </div>
                             <div class="input-group mb-4">
-                                <span class="input-group-text bg-light border-0" title="Presiona F9 para cambiar la tasa rápidamente"><i class="fa fa-money-bill-trend-up"></i> Cambio de Tasa (F9)</span>
+                                <span class="input-group-text bg-light border-0" title="Presiona F9 para cambiar la tasa rápidamente"><i class="fa fa-money-bill-trend-up"></i> Actualizar la Tasa (F9)</span>
                                 <input type="number" id="tasaDia" class="form-control border-0 bg-light" value="1" step="0.01" oninput="actualizarTasa()">
                             </div>
                                                     
@@ -769,8 +769,6 @@
             
             renderCarrito();
         } else {
-            // Si el usuario cancela, de igual manera registramos la fecha de hoy para no interrumpirlo de nuevo
-            // pero mantenemos el valor que ya existía (o 1 por defecto).
             const hoy = new Date().toISOString().split('T')[0];
             localStorage.setItem('tasa_dia_fecha', hoy);
             if (!localStorage.getItem('tasa_dia_valor')) {
@@ -786,11 +784,8 @@
         const inputTasa = document.getElementById('tasaDia');
 
         if (fechaGuardada === hoy && valorGuardado) {
-            // Si hay una tasa guardada específicamente para hoy, la cargamos
             inputTasa.value = valorGuardado;
         } else if (valorGuardado) {
-            // Si existe una tasa de días pasados, solo cargamos el valor visualmente.
-            // La fecha NO se actualiza aquí para permitir que el login detone el prompt.
             inputTasa.value = valorGuardado;
         } else {
             inputTasa.value = "1";
@@ -801,14 +796,12 @@
         const hoy = new Date().toISOString().split('T')[0];
         const inputTasa = document.getElementById('tasaDia');
         
-        // Guardar la nueva tasa editada y la fecha actual en localStorage
         localStorage.setItem('tasa_dia_fecha', hoy);
         localStorage.setItem('tasa_dia_valor', inputTasa.value);
         
         renderCarrito();
     }
 
-    // Atajo de teclado (F9) para modificar la tasa manualmente en cualquier momento
     document.addEventListener('keydown', function(e) {
         if (e.key === 'F9') {
             e.preventDefault(); 
@@ -840,7 +833,6 @@
         document.getElementById('nombreUsuarioActivo').innerText = usuario.nombre;
         document.getElementById('vendedorActual').value = usuario.nombre;
 
-        // ----- Validar Tasa del día al iniciar sesión -----
         const hoy = new Date().toISOString().split('T')[0];
         const fechaGuardada = localStorage.getItem('tasa_dia_fecha');
         if (fechaGuardada !== hoy) {
@@ -849,9 +841,7 @@
             const valorGuardado = localStorage.getItem('tasa_dia_valor');
             if(valorGuardado) document.getElementById('tasaDia').value = valorGuardado;
         }
-        // --------------------------------------------------
 
-        // Gestión de permisos visuales
         if (usuario.rol === 'ventas') {
             document.querySelectorAll('.admin-only').forEach(el => el.classList.add('d-none-role'));
             switchView('ventas_lista', document.getElementById('nav-ventas-lista'));
@@ -885,7 +875,6 @@
         if(viewId === 'categorias') cargarCategorias(); 
     }
 
-    // --- NUEVA FUNCIÓN PARA ACTUALIZAR EL LABEL Y STEP DEL STOCK SEGÚN LA CATEGORÍA ---
     function actualizarLabelStock() {
         const val = (document.getElementById('cate').value || '').toLowerCase();
         const lbl = document.getElementById('lblStock');
@@ -1121,14 +1110,18 @@
                 productos.forEach((p, i) => {
                     const precioFormateado = p.Precio ? parseFloat(p.Precio).toFixed(2) : "0.00";
                     const categoriaProd = p.Categoria || p.Categoría || p.categoria || p.categoría || '---';
+                    const catStr = categoriaProd.toLowerCase();
+                    const isPesable = catStr.includes('charcuteria') || catStr.includes('charcutería') || catStr.includes('verdura');
+                    
                     const stockFormat = parseFloat(p.Stock) % 1 !== 0 ? parseFloat(p.Stock).toFixed(3) : p.Stock;
+                    const stockText = isPesable ? `${stockFormat} Kg` : stockFormat;
                     
                     tbodyStock.innerHTML += `<tr>
                         <td class="d-none">${i+1}</td>
                         <td class="fw-bold text-muted">${p.Codigo}</td>
                         <td class="fw-bold">${p.Descripcion}</td>
                         <td>${categoriaProd}</td>
-                        <td><span class="badge rounded-pill ${p.Stock <= 10 ? 'bg-danger' : 'bg-success'} px-3">${stockFormat}</span></td>
+                        <td><span class="badge rounded-pill ${p.Stock <= 10 ? 'bg-danger' : 'bg-success'} px-3">${stockText}</span></td>
                         <td class="fw-bold text-success">$${precioFormateado}</td>
                         <td><button class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="prepararEdicion(${i})"><i class="fa fa-pencil"></i></button></td>
                     </tr>`;
@@ -1138,11 +1131,15 @@
             if(tbodyVentas) {
                 tbodyVentas.innerHTML = '';
                 productos.forEach((p, i) => {
-                    const stockFormat = parseFloat(p.Stock) % 1 !== 0 ? parseFloat(p.Stock).toFixed(3) : p.Stock;
                     const categoriaProd = p.Categoria || p.Categoría || p.categoria || p.categoría || '';
-                    const safeCat = categoriaProd.replace(/'/g, "\\'"); // Evitar error en JS si la categoria tiene comilla
+                    const catStr = categoriaProd.toLowerCase();
+                    const isPesable = catStr.includes('charcuteria') || catStr.includes('charcutería') || catStr.includes('verdura');
                     
-                    // PASAMOS LA CATEGORIA A LA FUNCIÓN AGREGAR
+                    const stockFormat = parseFloat(p.Stock) % 1 !== 0 ? parseFloat(p.Stock).toFixed(3) : p.Stock;
+                    const stockText = isPesable ? `${stockFormat} Kg` : stockFormat;
+                    
+                    const safeCat = categoriaProd.replace(/'/g, "\\'"); 
+                    
                     let btn = p.Stock > 0 
                         ? `<button type="button" class="btn btn-dark btn-sm rounded-pill px-3" onclick="agregarAlCarrito('${p.Codigo}', '${p.Descripcion}', ${p.Precio}, ${p.Stock}, '${safeCat}')">Agregar</button>` 
                         : `<button class="btn btn-secondary btn-sm rounded-pill px-3" disabled>Agotado</button>`;
@@ -1151,7 +1148,7 @@
                         <td class="d-none">${i+1}</td>
                         <td class="text-muted small d-none">${p.Codigo}</td>
                         <td class="fw-bold">${p.Descripcion}</td>
-                        <td><span class="badge rounded-pill ${p.Stock <= 5 ? 'bg-danger' : 'bg-success'}">${stockFormat}</span></td>
+                        <td><span class="badge rounded-pill ${p.Stock <= 5 ? 'bg-danger' : 'bg-success'}">${stockText}</span></td>
                         <td>${btn}</td>
                     </tr>`;
                 });
@@ -1163,7 +1160,6 @@
 
     function agregarAlCarrito(cod, desc, precio, stockMax, categoria = '') {
         
-        // Detectar si el articulo se vende por peso
         let esPesable = false;
         let catStr = categoria.toLowerCase();
         if(catStr.includes('charcuteria') || catStr.includes('charcutería') || catStr.includes('verdura')) {
@@ -1173,12 +1169,10 @@
         let cantidadAAgregar = 1;
 
         if (esPesable) {
-            // Si es charcutería o verduras, pide kilogramos y permite decimales
             let cantidadIngresada = prompt(`Ingrese el PESO EN KILOGRAMOS para ${desc}\n(Ej. 0.500 para medio kilo, 1.250 para 1 kilo y cuarto):`, "1.000");
             if (cantidadIngresada === null || cantidadIngresada.trim() === "") return; 
             cantidadAAgregar = parseFloat(cantidadIngresada);
         } else {
-            // Si es otro producto, pide unidades enteras 
             let cantidadIngresada = prompt(`Ingrese la cantidad de UNIDADES para ${desc}:`, "1");
             if (cantidadIngresada === null || cantidadIngresada.trim() === "") return;
             cantidadAAgregar = parseInt(cantidadIngresada);
@@ -1204,7 +1198,8 @@
                     descripcion: desc, 
                     precio: parseFloat(precio) || 0, 
                     cantidad: cantidadAAgregar, 
-                    stockMax: stockMax 
+                    stockMax: stockMax,
+                    esPesable: esPesable 
                 });
             } else {
                 alert(`No puedes superar el stock. Solo quedan ${stockMax} disponibles.`);
@@ -1226,10 +1221,10 @@
             totalGeneral += totalFila;
             const precioMostrar = item.precio ? parseFloat(item.precio).toFixed(2) : "0.00";
             
-            // Si la cantidad tiene decimales, mostramos hasta 3 dígitos (para gramos), si es entero se muestra normal.
             const cantMostrar = item.cantidad % 1 !== 0 ? item.cantidad.toFixed(3) : item.cantidad;
+            const displayCant = item.esPesable ? `${cantMostrar} Kg` : cantMostrar;
 
-            tbody.innerHTML += `<tr><td class="fw-bold"><small>${item.descripcion}</small></td><td>${cantMostrar}</td><td>$${precioMostrar}</td><td class="fw-bold text-success">$${totalFila.toFixed(2)}</td><td><button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="eliminarDelCarrito('${item.codigo}')"><i class="fa fa-times"></i></button></td></tr>`;
+            tbody.innerHTML += `<tr><td class="fw-bold"><small>${item.descripcion}</small></td><td>${displayCant}</td><td>$${precioMostrar}</td><td class="fw-bold text-success">$${totalFila.toFixed(2)}</td><td><button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="eliminarDelCarrito('${item.codigo}')"><i class="fa fa-times"></i></button></td></tr>`;
         });
         totalVentaActual = totalGeneral;
         tbody.innerHTML += `<tr class="border-top"><td colspan="3" class="text-end text-muted small pt-3">TOTAL USD:</td><td colspan="2" class="pt-3 fs-5 fw-bold">$${totalGeneral.toFixed(2)}</td></tr>`;
@@ -1268,8 +1263,11 @@
         const btn = document.getElementById('btnGuardarVenta');
         btn.innerHTML = 'Procesando...'; btn.disabled = true;
 
-        // Se usa formato en el detalle si hay decimales en la venta final (ej 0.500x Queso)
-        const detalleTexto = carrito.map(i => `${i.cantidad % 1 !== 0 ? i.cantidad.toFixed(3) : i.cantidad}x ${i.descripcion}`).join(', ');
+        const detalleTexto = carrito.map(i => {
+            const cant = i.cantidad % 1 !== 0 ? i.cantidad.toFixed(3) : i.cantidad;
+            const sufijo = i.esPesable ? "Kg " : "x ";
+            return `${cant}${sufijo}${i.descripcion}`;
+        }).join(', ');
 
         try {
             await fetch(API_URL, { 
@@ -1303,7 +1301,6 @@
         document.getElementById('form_action').value = 'addProducto';
         document.getElementById('modalTitle').innerText = 'Nuevo Artículo';
         
-        // ACTUALIZAMOS EL LABEL DEPENDIENDO DE LA CATEGORIA ACTUAL AL ABRIR EL MODAL
         actualizarLabelStock(); 
         
         new bootstrap.Modal(document.getElementById('modalAgregar')).show();
@@ -1328,7 +1325,6 @@
         
         cateSelect.value = catValue;
         
-        // ACTUALIZAMOS EL LABEL AL EDITAR PARA QUE COINCIDA CON LA CATEGORIA DEL PRODUCTO
         actualizarLabelStock();
         
         document.getElementById('stock').value = p.Stock;
@@ -1513,7 +1509,6 @@
         myModal.show();
     }
 
-    // AÑADIMOS cargarTasaDiaria AL ONLOAD
     window.onload = () => { 
         cargarTasaDiaria();
         cargarProductos(); 
@@ -1630,7 +1625,6 @@
         const contenedor = document.getElementById('contenedor-reportes');
         if (!contenedor) return;
 
-        // RECUPERAR LA TASA ACTUAL DEL SISTEMA
         const tasaActual = parseFloat(localStorage.getItem('tasa_dia_valor')) || 1;
 
         contenedor.innerHTML = '<div class="col-12 text-center mt-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x mb-3"></i><br><h5>Calculando y separando ingresos...</h5></div>';
@@ -1658,7 +1652,6 @@
 
             for (const [metodo, total] of Object.entries(totalesPorMetodo)) {
                 
-                // VERIFICAR SI EL MÉTODO ES EN BOLÍVARES PARA MOSTRAR SU EQUIVALENTE
                 let bsHtml = '';
                 const mLower = metodo.toLowerCase();
                 if (mLower.includes('bolivares') || mLower.includes('bolívares') || mLower.includes('pago movil') || mLower.includes('pago móvil') || mLower.includes('punto de venta')) {
@@ -1698,8 +1691,8 @@
         ventas.forEach(v => {
             if (!v.Detalle) return;
             
-            // Se modificó la regex para aceptar decimales si los hubiese en el texto guardado
-            let coincidencias = [...v.Detalle.matchAll(/([\d.]+)[xX]\s+([^,]+)/g)];
+            // Permite detectar "0.500Kg Queso" o "2x Harina" para sacar estadística
+            let coincidencias = [...v.Detalle.matchAll(/([\d.]+)(?:[xX]|Kg)\s+([^,]+)/g)];
             
             coincidencias.forEach(match => {
                 let cantidad = parseFloat(match[1]); 
