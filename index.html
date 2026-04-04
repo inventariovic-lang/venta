@@ -535,7 +535,7 @@
                                 </select>
                             </div>
                             <div class="input-group mb-4">
-                                <span class="input-group-text bg-light border-0"><i class="fa fa-money-bill-trend-up"></i> Tasa</span>
+                                <span class="input-group-text bg-light border-0" title="Presiona F9 para cambiar la tasa rápidamente"><i class="fa fa-money-bill-trend-up"></i> Cambio de Tasa (F9)</span>
                                 <input type="number" id="tasaDia" class="form-control border-0 bg-light" value="1" step="0.01" oninput="actualizarTasa()">
                             </div>
                                                     
@@ -755,6 +755,30 @@
     let ventasCache = []; 
 
     /* ----- LÓGICA DE TASA DIARIA ----- */
+    function solicitarTasaDelDia() {
+        const valorActual = localStorage.getItem('tasa_dia_valor') || "1";
+        let nuevaTasa = prompt("💲 Configure la Tasa de Cambio del día:", valorActual);
+        
+        if (nuevaTasa !== null && nuevaTasa.trim() !== "" && !isNaN(parseFloat(nuevaTasa)) && parseFloat(nuevaTasa) > 0) {
+            const hoy = new Date().toISOString().split('T')[0];
+            localStorage.setItem('tasa_dia_fecha', hoy);
+            localStorage.setItem('tasa_dia_valor', parseFloat(nuevaTasa).toFixed(2));
+            
+            const inputTasa = document.getElementById('tasaDia');
+            if(inputTasa) inputTasa.value = parseFloat(nuevaTasa).toFixed(2);
+            
+            renderCarrito();
+        } else {
+            // Si el usuario cancela, de igual manera registramos la fecha de hoy para no interrumpirlo de nuevo
+            // pero mantenemos el valor que ya existía (o 1 por defecto).
+            const hoy = new Date().toISOString().split('T')[0];
+            localStorage.setItem('tasa_dia_fecha', hoy);
+            if (!localStorage.getItem('tasa_dia_valor')) {
+                localStorage.setItem('tasa_dia_valor', "1");
+            }
+        }
+    }
+
     function cargarTasaDiaria() {
         const hoy = new Date().toISOString().split('T')[0];
         const fechaGuardada = localStorage.getItem('tasa_dia_fecha');
@@ -765,14 +789,11 @@
             // Si hay una tasa guardada específicamente para hoy, la cargamos
             inputTasa.value = valorGuardado;
         } else if (valorGuardado) {
-            // Si existe una tasa pero de un día anterior, la mantenemos pero actualizamos la fecha
+            // Si existe una tasa de días pasados, solo cargamos el valor visualmente.
+            // La fecha NO se actualiza aquí para permitir que el login detone el prompt.
             inputTasa.value = valorGuardado;
-            localStorage.setItem('tasa_dia_fecha', hoy);
         } else {
-            // Si es la primera vez que se usa el sistema en este navegador, por defecto es 1
             inputTasa.value = "1";
-            localStorage.setItem('tasa_dia_fecha', hoy);
-            localStorage.setItem('tasa_dia_valor', "1");
         }
     }
 
@@ -786,6 +807,14 @@
         
         renderCarrito();
     }
+
+    // Atajo de teclado (F9) para modificar la tasa manualmente en cualquier momento
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F9') {
+            e.preventDefault(); 
+            solicitarTasaDelDia();
+        }
+    });
     /* ---------------------------------- */
 
     /* ----- SISTEMA DE USUARIOS ----- */
@@ -810,6 +839,17 @@
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('nombreUsuarioActivo').innerText = usuario.nombre;
         document.getElementById('vendedorActual').value = usuario.nombre;
+
+        // ----- Validar Tasa del día al iniciar sesión -----
+        const hoy = new Date().toISOString().split('T')[0];
+        const fechaGuardada = localStorage.getItem('tasa_dia_fecha');
+        if (fechaGuardada !== hoy) {
+            solicitarTasaDelDia();
+        } else {
+            const valorGuardado = localStorage.getItem('tasa_dia_valor');
+            if(valorGuardado) document.getElementById('tasaDia').value = valorGuardado;
+        }
+        // --------------------------------------------------
 
         // Gestión de permisos visuales
         if (usuario.rol === 'ventas') {
@@ -1121,7 +1161,6 @@
         }
     }
 
-    // --- FUNCIÓN ACTUALIZADA PARA PREGUNTAR POR KILOGRAMOS SOLO SI ES CHARCUTERIA O VERDURAS ---
     function agregarAlCarrito(cod, desc, precio, stockMax, categoria = '') {
         
         // Detectar si el articulo se vende por peso
