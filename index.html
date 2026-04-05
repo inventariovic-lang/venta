@@ -592,42 +592,84 @@
 </div>
 
 <div class="modal fade" id="modalAgregar" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <form id="formProducto" class="modal-content" style="border-radius: var(--radius-card); border: none;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <form id="formProducto" class="modal-content" style="border-radius: var(--radius-card); border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <input type="hidden" id="form_action" value="addProducto">
-            <div class="modal-header border-0 pb-0">
-                <h4 id="modalTitle" class="fw-bold px-2 pt-2">Nuevo Artículo</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            
+            <div class="modal-header" style="background-color: var(--app-gray); border-radius: var(--radius-card) var(--radius-card) 0 0; border-bottom: none; padding: 1.5rem;">
+                <h5 class="modal-title fw-bold" id="modalTitle" style="color: var(--text-main);">
+                    <i class="fa-solid fa-box-open me-2" style="color: var(--app-yellow);"></i>Nuevo Artículo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body px-4">
-                <div class="mb-3"><label class="text-muted small fw-bold">Código</label><input type="text" id="cod" class="form-control bg-light border-0 p-2 rounded" required></div>
-                <div class="mb-3"><label class="text-muted small fw-bold">Descripción</label><input type="text" id="desc" class="form-control bg-light border-0 p-2 rounded" required></div>
-                
-                <div class="mb-3">
-                    <label class="text-muted small fw-bold">Categoría</label>
-                    <select id="cate" class="form-select bg-light border-0 p-2 rounded" required onchange="actualizarLabelStock()">
-                        <option value="General">General</option>
-                    </select>
-                </div>
-                
-                <div class="row">
-                    <div class="col-6">
-                        <label id="lblStock" class="text-muted small fw-bold">Stock (Unidades)</label>
-                        <input type="number" step="1" id="stock" class="form-control bg-light border-0 p-2 rounded" required>
+
+            <div class="modal-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label for="cod" class="form-label fw-semibold" style="color: var(--text-main);">Código</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0" style="border-radius: var(--radius-btn) 0 0 var(--radius-btn);">
+                                <i class="fa-solid fa-barcode" style="color: var(--text-muted);"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" id="cod" placeholder="Ej. PROD-001" style="border-radius: 0 var(--radius-btn) var(--radius-btn) 0; background-color: #fcfcfc;" required>
+                        </div>
                     </div>
-                    <div class="col-6">
-                        <label class="text-muted small fw-bold">Precio</label>
-                        <input type="number" step="0.01" id="precio" class="form-control bg-light border-0 p-2 rounded" required>
+
+                    <div class="col-md-6">
+                        <label for="desc" class="form-label fw-semibold" style="color: var(--text-main);">Descripción</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0" style="border-radius: var(--radius-btn) 0 0 var(--radius-btn);">
+                                <i class="fa-solid fa-tag" style="color: var(--text-muted);"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" id="desc" placeholder="Ej. Franela Deportiva" style="border-radius: 0 var(--radius-btn) var(--radius-btn) 0; background-color: #fcfcfc;" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="cate" class="form-label fw-semibold" style="color: var(--text-main);">Categoría</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0" style="border-radius: var(--radius-btn) 0 0 var(--radius-btn);">
+                                <i class="fa-solid fa-layer-group" style="color: var(--text-muted);"></i>
+                            </span>
+                            <select class="form-select border-start-0" id="cate" onchange="actualizarLabelStock()" style="border-radius: 0 var(--radius-btn) var(--radius-btn) 0; background-color: #fcfcfc;" required>
+                                <option value="General">General</option>
+                                </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="stock" id="lblStock" class="form-label fw-semibold" style="color: var(--text-main);">Stock (Unidades)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0" style="border-radius: var(--radius-btn) 0 0 var(--radius-btn);">
+                                <i class="fa-solid fa-cubes" style="color: var(--text-muted);"></i>
+                            </span>
+                            <input type="number" step="1" class="form-control border-start-0" id="stock" placeholder="0" style="border-radius: 0 var(--radius-btn) var(--radius-btn) 0; background-color: #fcfcfc;" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="precio" class="form-label fw-semibold" style="color: var(--text-main);">Precio de Venta ($)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0" style="border-radius: var(--radius-btn) 0 0 var(--radius-btn);">
+                                <i class="fa-solid fa-hand-holding-dollar" style="color: var(--text-muted);"></i>
+                            </span>
+                            <input type="number" step="0.01" min="0" class="form-control border-start-0" id="precio" placeholder="0.00" style="border-radius: 0 var(--radius-btn) var(--radius-btn) 0; background-color: #fcfcfc;" required>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer border-0 px-4 pb-4">
-                <button type="submit" class="btn-app-primary w-100" id="btnGuardarProducto">Guardar Cambios</button>
+
+            <div class="modal-footer border-top-0 px-4 pb-4 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light px-4 py-2" data-bs-dismiss="modal" style="border-radius: var(--radius-btn); font-weight: 500; color: var(--text-muted);">
+                    <i class="fa-solid fa-times me-2"></i>Cancelar
+                </button>
+                <button type="submit" id="btnGuardarProducto" class="btn px-4 py-2 shadow-sm" style="background-color: var(--app-yellow); color: var(--app-dark); border: none; border-radius: var(--radius-btn); font-weight: 600;">
+                    <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Cambios
+                </button>
             </div>
         </form>
     </div>
 </div>
-
 <div class="modal fade" id="modalCliente" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <form id="formCliente" class="modal-content" style="border-radius: var(--radius-card); border: none;">
@@ -744,7 +786,99 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="modalArticulo" tabindex="-1" aria-labelledby="modalArticuloLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: var(--radius-card); border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            
+            <div class="modal-header" style="background-color: var(--app-gray); border-radius: var(--radius-card) var(--radius-card) 0 0; border-bottom: none; padding: 1.5rem;">
+                <h5 class="modal-title fw-bold" id="modalArticuloLabel" style="color: var(--text-main);">
+                    <i class="fa-solid fa-box-open me-2" style="color: var(--app-yellow);"></i>Guardar Artículo
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
 
+            <div class="modal-body p-4">
+                <form id="formArticulo">
+                    <input type="hidden" id="articuloId">
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label for="articuloCodigo" class="form-label fw-semibold" style="color: var(--text-main);">Código</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white" style="border-radius: var(--radius-btn) 0 0 var(--radius-btn);">
+                                    <i class="fa-solid fa-barcode" style="color: var(--text-muted);"></i>
+                                </span>
+                                <input type="text" class="form-control" id="articuloCodigo" placeholder="Ej. PROD-001" style="border-radius: 0 var(--radius-btn) var(--radius-btn) 0;" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="articuloNombre" class="form-label fw-semibold" style="color: var(--text-main);">Nombre o Descripción</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white" style="border-radius: var(--radius-btn) 0 0 var(--radius-btn);">
+                                    <i class="fa-solid fa-tag" style="color: var(--text-muted);"></i>
+                                </span>
+                                <input type="text" class="form-control" id="articuloNombre" placeholder="Ej. Franela Deportiva" style="border-radius: 0 var(--radius-btn) var(--radius-btn) 0;" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="articuloCategoria" class="form-label fw-semibold" style="color: var(--text-main);">Categoría</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white" style="border-radius: var(--radius-btn) 0 0 var(--radius-btn);">
+                                    <i class="fa-solid fa-layer-group" style="color: var(--text-muted);"></i>
+                                </span>
+                                <select class="form-select" id="articuloCategoria" style="border-radius: 0 var(--radius-btn) var(--radius-btn) 0;" required>
+                                    <option value="">Seleccione una categoría...</option>
+                                    </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="articuloStock" class="form-label fw-semibold" style="color: var(--text-main);">Cantidad en Stock</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white" style="border-radius: var(--radius-btn) 0 0 var(--radius-btn);">
+                                    <i class="fa-solid fa-cubes" style="color: var(--text-muted);"></i>
+                                </span>
+                                <input type="number" min="0" class="form-control" id="articuloStock" placeholder="0" style="border-radius: 0 var(--radius-btn) var(--radius-btn) 0;" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="articuloCosto" class="form-label fw-semibold" style="color: var(--text-main);">Precio de Compra ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white" style="border-radius: var(--radius-btn) 0 0 var(--radius-btn);">
+                                    <i class="fa-solid fa-dollar-sign" style="color: var(--text-muted);"></i>
+                                </span>
+                                <input type="number" step="0.01" min="0" class="form-control" id="articuloCosto" placeholder="0.00" style="border-radius: 0 var(--radius-btn) var(--radius-btn) 0;" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="articuloPrecio" class="form-label fw-semibold" style="color: var(--text-main);">Precio de Venta ($)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white" style="border-radius: var(--radius-btn) 0 0 var(--radius-btn);">
+                                    <i class="fa-solid fa-hand-holding-dollar" style="color: var(--text-muted);"></i>
+                                </span>
+                                <input type="number" step="0.01" min="0" class="form-control" id="articuloPrecio" placeholder="0.00" style="border-radius: 0 var(--radius-btn) var(--radius-btn) 0;" required>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer border-top-0 px-4 pb-4 d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-light px-4 py-2" data-bs-dismiss="modal" style="border-radius: var(--radius-btn); font-weight: 500; color: var(--text-muted);">
+                    <i class="fa-solid fa-times me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn px-4 py-2 shadow-sm" onclick="guardarArticulo()" style="background-color: var(--app-yellow); color: var(--app-dark); border: none; border-radius: var(--radius-btn); font-weight: 600;">
+                    <i class="fa-solid fa-floppy-disk me-2"></i>Guardar
+                </button>
+            </div>
+            
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="modalTasa" tabindex="-1" aria-labelledby="modalTasaLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: var(--radius-card); overflow: hidden;">
