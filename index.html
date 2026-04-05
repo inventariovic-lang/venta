@@ -1567,13 +1567,16 @@
                     nombreCat = c;
                 }
                 
+                // Aquí reemplazamos las comillas simples por si la categoría contiene alguna, para que no rompa el onclick
+                const safeCatName = nombreCat.replace(/'/g, "\\'");
+
                 if (tbody) {
                     tbody.innerHTML += `
                         <tr>
                             <td class="ps-4 d-none">${i+1}</td>
                             <td class="fw-bold">${nombreCat}</td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar (Próximamente)">
+                                <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarCategoriaBackend('${safeCatName}')" title="Eliminar Categoría">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </td>
@@ -1627,6 +1630,38 @@
             btn.innerHTML = '<i class="fa fa-save me-2"></i> Guardar Categoría';
         }
     });
+
+    // NUEVA FUNCIÓN INTEGRADA AL BACKEND DE GOOGLE APPS SCRIPT
+    async function eliminarCategoriaBackend(nombreCategoria) {
+        if (confirm(`¿Estás seguro de que deseas eliminar la categoría "${nombreCategoria}"?`)) {
+            
+            // Verificamos que no haya productos usando esta categoría utilizando la memoria caché que ya tienes en el sistema
+            const enUso = productosCache.some(p => {
+                const cat = p.Categoria || p.Categoría || p.categoria || p.categoría || "";
+                return cat.toLowerCase() === nombreCategoria.toLowerCase();
+            });
+            
+            if (enUso) {
+                alert(`No se puede eliminar la categoría "${nombreCategoria}" porque hay productos en tu inventario que la están utilizando. Cámbiales la categoría primero.`);
+                return; // Detiene la ejecución
+            }
+
+            try {
+                // Hacemos el envío a Google Apps Script tal como lo haces con las ventas
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify({ action: 'deleteCategoria', nombre: nombreCategoria })
+                });
+                
+                alert("Petición para eliminar la categoría enviada con éxito.");
+                cargarCategorias(); // Refrescamos la tabla y los selects visualmente
+                
+            } catch (error) {
+                alert("Error al intentar comunicarse con el servidor para eliminar la categoría.");
+            }
+        }
+    }
 
     async function cargarReportes() {
         const contenedor = document.getElementById('contenedor-reportes');
@@ -1760,6 +1795,46 @@
         });
     }
 
+    // Funciones locales mantenidas intactas pero corregidas en su sintaxis
+    function guardarCategoria() {
+        const nombre = document.getElementById('nombreCategoria') ? document.getElementById('nombreCategoria').value : '';
+        if (nombre && typeof categorias !== 'undefined') {
+            const nuevaCat = {
+                id: Date.now(),
+                nombre: nombre
+            };
+            categorias.push(nuevaCat);
+            if(typeof guardarDatos === 'function') guardarDatos();
+            renderCategorias();
+            document.getElementById('nombreCategoria').value = '';
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalCategoria'));
+            if(modal) modal.hide();
+        }
+    }
+
+    function eliminarCategoria(id) {
+        if (confirm('¿Estás seguro de que deseas eliminar esta categoría?')) {
+            if (typeof categorias !== 'undefined') {
+                const categoria = categorias.find(c => c.id === id);
+                if (categoria && typeof productos !== 'undefined') {
+                    const enUso = productos.some(p => p.categoria === categoria.nombre);
+                    if (enUso) {
+                        alert(`No se puede eliminar la categoría "${categoria.nombre}" porque hay productos que la están utilizando. Cambia la categoría de esos productos o elimínelos primero.`);
+                        return; 
+                    }
+                }
+                categorias = categorias.filter(c => c.id !== id);
+                if(typeof guardarDatos === 'function') guardarDatos();
+                renderCategorias();
+                if(typeof renderCategoriaFiltro === 'function') renderCategoriaFiltro(); 
+            }
+        }
+    }
+
+    function renderCategorias() {
+        const tbody = document.getElementById('tbodyCategorias');
+        if (tbody) tbody.innerHTML = '';
+    }
 </script>
 
 </body>
