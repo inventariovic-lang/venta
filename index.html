@@ -534,9 +534,10 @@
  				                    <option value="Efectivo Bolivares">Efectivo Bolívares</option>
                                 </select>
                             </div>
-                            <div class="input-group mb-4">
+
+                            <div class="input-group mb-4" onclick="solicitarTasaDelDia()" style="cursor: pointer;">
                                 <span class="input-group-text bg-light border-0" title="Presiona F9 para cambiar la tasa rápidamente"><i class="fa fa-money-bill-trend-up"></i> Tasa (F9)</span>
-                                <input type="number" id="tasaDia" class="form-control border-0 bg-light" value="1" step="0.01" oninput="actualizarTasa()">
+                                <input type="number" id="tasaDia" class="form-control border-0 bg-light" value="1" step="0.01" readonly style="cursor: pointer;">
                             </div>
                                                     
                             <div class="table-responsive mb-4" style="min-height: 150px;">
@@ -744,6 +745,54 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalTasa" tabindex="-1" aria-labelledby="modalTasaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: var(--radius-card); overflow: hidden;">
+            
+            <div class="modal-header text-white" style="background-color: var(--app-dark); border-bottom: none; padding: 1.5rem;">
+                <h5 class="modal-title fw-bold mb-0 d-flex align-items-center" id="modalTasaLabel">
+                    <i class="fa-solid fa-money-bill-transfer me-3" style="color: var(--app-yellow); font-size: 1.5rem;"></i>
+                    Tasa de Cambio
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            
+            <div class="modal-body p-4" style="background-color: var(--app-bg);">
+                <p class="text-muted mb-4" style="font-size: 0.95rem;">
+                    Configura la tasa de cambio actual. Este valor actualizará automáticamente todos los precios del inventario y las ventas.
+                </p>
+                
+                <div class="mb-4">
+                    <label for="valorTasa" class="form-label fw-bold" style="color: var(--text-main);">Valor de la Tasa (Bs)</label>
+                    <div class="input-group input-group-lg shadow-sm" style="border-radius: var(--radius-btn); overflow: hidden;">
+                        <span class="input-group-text border-0 px-4" style="background-color: var(--app-gray);">
+                            <i class="fa-solid fa-coins text-warning"></i>
+                        </span>
+                        <input type="number" class="form-control border-0" id="valorTasa" step="0.01" min="0.01" placeholder="Ej. 36.50" style="background-color: var(--app-gray); box-shadow: none;">
+                        <span class="input-group-text border-0 text-muted fw-bold" style="background-color: var(--app-gray);">Bs/$</span>
+                    </div>
+                </div>
+
+                <div class="alert d-flex align-items-center border-0 mb-0" style="background-color: #f0f7ff; border-radius: 12px; color: #004085;" role="alert">
+                    <i class="fa-solid fa-circle-info me-3 fs-5"></i>
+                    <div>
+                        <small class="mb-0 fw-medium">Asegúrate de usar separador de decimales correcto y mantener el valor actualizado al día.</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer border-0 p-4 pt-0" style="background-color: var(--app-bg);">
+                <button type="button" class="btn fw-bold px-4 py-2" data-bs-dismiss="modal" style="border-radius: var(--radius-btn); color: var(--text-muted); background-color: var(--app-gray);">
+                    Cancelar
+                </button>
+                <button type="button" class="btn fw-bold px-4 py-2 text-dark" onclick="guardarTasaModal()" style="border-radius: var(--radius-btn); background-color: var(--app-yellow); box-shadow: 0 4px 12px rgba(89, 209, 86, 0.3); transition: all 0.3s ease;">
+                    <i class="fa-solid fa-floppy-disk me-2"></i>Guardar Tasa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbxKsNKZLhZGl_RBqtMr11jypdkpnkE_4DM1aXpShLtAq0hKEOg2EwJN1WGYCXwM7q_n/exec';
@@ -755,25 +804,58 @@
     let ventasCache = []; 
 
     /* ----- LÓGICA DE TASA DIARIA ----- */
+    // Escuchar el evento de cierre del modal para registrar fallback si el usuario cancela
+    document.addEventListener('DOMContentLoaded', () => {
+        const modalTasaEl = document.getElementById('modalTasa');
+        if (modalTasaEl) {
+            modalTasaEl.addEventListener('hidden.bs.modal', function () {
+                const hoy = new Date().toISOString().split('T')[0];
+                localStorage.setItem('tasa_dia_fecha', hoy);
+                if (!localStorage.getItem('tasa_dia_valor')) {
+                    localStorage.setItem('tasa_dia_valor', "1");
+                }
+            });
+        }
+    });
+
     function solicitarTasaDelDia() {
         const valorActual = localStorage.getItem('tasa_dia_valor') || "1";
-        let nuevaTasa = prompt("💲 Configure la Tasa de Cambio del día:", valorActual);
-        
-        if (nuevaTasa !== null && nuevaTasa.trim() !== "" && !isNaN(parseFloat(nuevaTasa)) && parseFloat(nuevaTasa) > 0) {
+        const inputModal = document.getElementById('valorTasa');
+        if(inputModal) inputModal.value = valorActual;
+
+        let modalEl = document.getElementById('modalTasa');
+        let modal = bootstrap.Modal.getInstance(modalEl);
+        if (!modal) {
+            modal = new bootstrap.Modal(modalEl);
+        }
+        modal.show();
+
+        // Autoseleccionar el texto para edición rápida
+        modalEl.addEventListener('shown.bs.modal', function () {
+            inputModal.focus();
+            inputModal.select();
+        }, { once: true });
+    }
+
+    function guardarTasaModal() {
+        const inputTasa = document.getElementById('valorTasa');
+        const nuevaTasa = parseFloat(inputTasa.value);
+
+        if (!isNaN(nuevaTasa) && nuevaTasa > 0) {
             const hoy = new Date().toISOString().split('T')[0];
             localStorage.setItem('tasa_dia_fecha', hoy);
-            localStorage.setItem('tasa_dia_valor', parseFloat(nuevaTasa).toFixed(2));
-            
-            const inputTasa = document.getElementById('tasaDia');
-            if(inputTasa) inputTasa.value = parseFloat(nuevaTasa).toFixed(2);
-            
+            localStorage.setItem('tasa_dia_valor', nuevaTasa.toFixed(2));
+
+            const inputTasaPrincipal = document.getElementById('tasaDia');
+            if(inputTasaPrincipal) inputTasaPrincipal.value = nuevaTasa.toFixed(2);
+
             renderCarrito();
+
+            const modalInst = bootstrap.Modal.getInstance(document.getElementById('modalTasa'));
+            if(modalInst) modalInst.hide();
         } else {
-            const hoy = new Date().toISOString().split('T')[0];
-            localStorage.setItem('tasa_dia_fecha', hoy);
-            if (!localStorage.getItem('tasa_dia_valor')) {
-                localStorage.setItem('tasa_dia_valor', "1");
-            }
+            alert("Por favor, ingrese un valor válido y mayor a cero.");
+            inputTasa.focus();
         }
     }
 
@@ -790,16 +872,6 @@
         } else {
             inputTasa.value = "1";
         }
-    }
-
-    function actualizarTasa() {
-        const hoy = new Date().toISOString().split('T')[0];
-        const inputTasa = document.getElementById('tasaDia');
-        
-        localStorage.setItem('tasa_dia_fecha', hoy);
-        localStorage.setItem('tasa_dia_valor', inputTasa.value);
-        
-        renderCarrito();
     }
 
     document.addEventListener('keydown', function(e) {
@@ -1845,6 +1917,7 @@
         const tbody = document.getElementById('tbodyCategorias');
         if (tbody) tbody.innerHTML = '';
     }
+
 </script>
 
 </body>
