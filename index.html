@@ -1169,9 +1169,9 @@
         let cantidadAAgregar = 1;
 
         if (esPesable) {
-            let cantidadIngresada = prompt(`Ingrese el PESO EN KILOGRAMOS para ${desc}\n(Ej. 0.500 para medio kilo, 1.250 para 1 kilo y cuarto):`, "1.000");
+            let cantidadIngresada = prompt(`Ingrese el PESO EN GRAMOS para ${desc}\n(Ej. 500 para medio kilo, 1250 para 1 kilo y cuarto):`, "1000");
             if (cantidadIngresada === null || cantidadIngresada.trim() === "") return; 
-            cantidadAAgregar = parseFloat(cantidadIngresada);
+            cantidadAAgregar = parseFloat(cantidadIngresada) / 1000;
         } else {
             let cantidadIngresada = prompt(`Ingrese la cantidad de UNIDADES para ${desc}:`, "1");
             if (cantidadIngresada === null || cantidadIngresada.trim() === "") return;
@@ -1189,7 +1189,7 @@
             if ((item.cantidad + cantidadAAgregar) <= stockMax) {
                 item.cantidad += cantidadAAgregar;
             } else {
-                alert(`No puedes superar el stock. Solo quedan ${stockMax} disponibles.`);
+                alert(`No puedes superar el stock. Solo quedan ${esPesable ? (stockMax * 1000).toFixed(0) + ' g' : stockMax} disponibles.`);
             }
         } else {
             if (cantidadAAgregar <= stockMax) {
@@ -1202,7 +1202,7 @@
                     esPesable: esPesable 
                 });
             } else {
-                alert(`No puedes superar el stock. Solo quedan ${stockMax} disponibles.`);
+                alert(`No puedes superar el stock. Solo quedan ${esPesable ? (stockMax * 1000).toFixed(0) + ' g' : stockMax} disponibles.`);
             }
         }
         
@@ -1221,8 +1221,12 @@
             totalGeneral += totalFila;
             const precioMostrar = item.precio ? parseFloat(item.precio).toFixed(2) : "0.00";
             
-            const cantMostrar = item.cantidad % 1 !== 0 ? item.cantidad.toFixed(3) : item.cantidad;
-            const displayCant = item.esPesable ? `${cantMostrar} Kg` : cantMostrar;
+            let displayCant;
+            if (item.esPesable) {
+                displayCant = `${(item.cantidad * 1000).toFixed(0)} g`;
+            } else {
+                displayCant = item.cantidad % 1 !== 0 ? item.cantidad.toFixed(3) : item.cantidad;
+            }
 
             tbody.innerHTML += `<tr><td class="fw-bold"><small>${item.descripcion}</small></td><td>${displayCant}</td><td>$${precioMostrar}</td><td class="fw-bold text-success">$${totalFila.toFixed(2)}</td><td><button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="eliminarDelCarrito('${item.codigo}')"><i class="fa fa-times"></i></button></td></tr>`;
         });
@@ -1264,9 +1268,12 @@
         btn.innerHTML = 'Procesando...'; btn.disabled = true;
 
         const detalleTexto = carrito.map(i => {
-            const cant = i.cantidad % 1 !== 0 ? i.cantidad.toFixed(3) : i.cantidad;
-            const sufijo = i.esPesable ? "Kg " : "x ";
-            return `${cant}${sufijo}${i.descripcion}`;
+            if (i.esPesable) {
+                return `${(i.cantidad * 1000).toFixed(0)}g ${i.descripcion}`;
+            } else {
+                const cant = i.cantidad % 1 !== 0 ? i.cantidad.toFixed(3) : i.cantidad;
+                return `${cant}x ${i.descripcion}`;
+            }
         }).join(', ');
 
         try {
@@ -1691,13 +1698,18 @@
         ventas.forEach(v => {
             if (!v.Detalle) return;
             
-            // Permite detectar "0.500Kg Queso" o "2x Harina" para sacar estadística
-            let coincidencias = [...v.Detalle.matchAll(/([\d.]+)(?:[xX]|Kg)\s+([^,]+)/g)];
+            // Permite detectar "0.500Kg Queso", "500g Queso" o "2x Harina" para sacar estadística
+            let coincidencias = [...v.Detalle.matchAll(/([\d.]+)([xX]|Kg|g)\s+([^,]+)/g)];
             
             coincidencias.forEach(match => {
                 let cantidad = parseFloat(match[1]); 
-                let nombre = match[2].trim(); 
+                let unidad = match[2];
+                let nombre = match[3].trim(); 
                 
+                if (unidad === 'g') {
+                    cantidad = cantidad / 1000; // Convertir de nuevo a Kg para la estadística de barras
+                }
+
                 if (conteoProductos[nombre]) {
                     conteoProductos[nombre] += cantidad;
                 } else {
