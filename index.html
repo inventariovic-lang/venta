@@ -389,7 +389,7 @@
             <div class="row mt-4 mb-2">
                 <div class="col-12 col-md-8 mx-auto">
                     <div class="card-app p-4 shadow-sm" style="background-color: var(--app-bg); border-radius: var(--radius-card);">
-                        <h6 class="fw-bold text-muted mb-3 text-center text-uppercase"><i class="fa fa-chart-bar text-success me-2"></i>Top 5 Productos Más Vendidos</h6>
+                        <h6 class="fw-bold text-muted mb-3 text-center text-uppercase"><i class="fa fa-chart-bar text-success me-2"></i>Top 10 Productos Más Vendidos</h6>
                         <div style="position: relative; height:250px; width:100%">
                             <canvas id="graficaProductosVendidos"></canvas>
                         </div>
@@ -535,7 +535,7 @@
                                 </select>
                             </div>
                             <div class="input-group mb-4">
-                                <span class="input-group-text bg-light border-0" title="Presiona F9 para cambiar la tasa rápidamente"><i class="fa fa-money-bill-trend-up"></i>Actualizar tasa(F9)</span>
+                                <span class="input-group-text bg-light border-0" title="Presiona F9 para cambiar la tasa rápidamente"><i class="fa fa-money-bill-trend-up"></i> Tasa (F9)</span>
                                 <input type="number" id="tasaDia" class="form-control border-0 bg-light" value="1" step="0.01" oninput="actualizarTasa()">
                             </div>
                                                     
@@ -1709,7 +1709,7 @@
         let productosOrdenados = Object.keys(conteoProductos)
             .map(nombre => ({ nombre, cantidad: conteoProductos[nombre] }))
             .sort((a, b) => b.cantidad - a.cantidad)
-            .slice(0, 5); 
+            .slice(0, 10); // Modificado para el Top 10
 
         let labels = productosOrdenados.map(p => p.nombre);
         let data = productosOrdenados.map(p => p.cantidad);
