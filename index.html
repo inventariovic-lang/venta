@@ -254,16 +254,17 @@
             object-fit: contain;
             margin-right: 10px;
         }
-
+        
+        /* Estilos ajustados para el buscador */
+        .input-group-text { background-color: #fff; }
+        .form-control:focus { box-shadow: none; border-color: #dee2e6; }
     </style>
 </head>
 <body>
 
 <div id="loginOverlay">
     <div class="login-card text-center">
-        <div class="mb-2">
-            
-        </div>
+        <div class="mb-2"></div>
         <div class="d-flex justify-content-center align-items-center mb-4 text-dark fs-3 fw-bold">
             <img src="https://github.com/inventariovic-lang/venta/blob/main/STK.gif?raw=true" alt="Logo animado" class="login-gif" style="width: 50%; height: 50%;">
         </div>
@@ -279,8 +280,6 @@
         </form>
         <div class="text-muted small text-start bg-light p-3 rounded-4">
             <p class="mb-1"><i class="fa fa-info-circle me-1"></i><strong>Acceso Valido requerido</strong></p>
-            <p class="mb-1 ms-3"><code></code><code></code></p>
-            <p class="mb-0 ms-3"> <code></code>  <code></code></p>
         </div>
     </div>
 </div>
@@ -373,7 +372,7 @@
                 <div class="col-6 col-md-3">
                     <div class="stat-box">
                         <i class="fa fa-box"></i>
-                        <h3>0</h3>
+                        <h3 id="contadorProductos">0</h3>
                         <p>Productos</p>
                     </div>
                 </div>
@@ -396,7 +395,6 @@
                     </div>
                 </div>
             </div>
-
         </section>
 
         <section id="view-categorias" class="view-section">
@@ -418,8 +416,7 @@
                                     <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
@@ -462,10 +459,16 @@
         </section>
 
         <section id="view-productos" class="view-section">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="fw-bold">Inventario de Artículos</h3>
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                <h3 class="fw-bold m-0">Inventario de Artículos</h3>
+                
+                <div class="input-group flex-grow-1" style="max-width: 400px; border: 1px solid #eaeaea; border-radius: 50px; overflow: hidden;">
+                    <span class="input-group-text bg-white border-0 ps-4"><i class="fa fa-search text-muted"></i></span>
+                    <input type="text" id="buscadorInventario" class="form-control border-0 bg-white py-2 shadow-none" placeholder="Buscar por código o descripción..." onkeyup="filtrarInventario()">
+                </div>
                 <button class="btn-app-primary" onclick="prepararModalNuevo()"><i class="fa fa-plus"></i> Nuevo Artículo</button>
             </div>
+
             <div class="card-app">
                 <div class="table-responsive">
                     <table class="table table-hover" id="tablaProductos">
@@ -938,7 +941,6 @@
     let ventasCache = []; 
 
     /* ----- LÓGICA DE TASA DIARIA ----- */
-    // Escuchar el evento de cierre del modal para registrar fallback si el usuario cancela
     document.addEventListener('DOMContentLoaded', () => {
         const modalTasaEl = document.getElementById('modalTasa');
         if (modalTasaEl) {
@@ -964,7 +966,6 @@
         }
         modal.show();
 
-        // Autoseleccionar el texto para edición rápida
         modalEl.addEventListener('shown.bs.modal', function () {
             inputModal.focus();
             inputModal.select();
@@ -1311,6 +1312,11 @@
             productos.sort((a, b) => parseFloat(a.Stock) - parseFloat(b.Stock));
             productosCache = productos; 
             
+            const contadorProductos = document.getElementById('contadorProductos');
+            if(contadorProductos) {
+                contadorProductos.innerText = productos.length || 0;
+            }
+            
             if(tbodyStock) {
                 tbodyStock.innerHTML = '';
                 productos.forEach((p, i) => {
@@ -1462,7 +1468,6 @@
         } catch (err) { alert("Error"); } finally { btn.disabled = false; btn.innerText = 'Guardar Cliente'; }
     });
 
-    // === AQUÍ ESTÁ EL CÁLCULO Y ENVÍO DEL CORRELATIVO FAC-XX ===
     document.getElementById('formCrearVenta').addEventListener('submit', async (e) => {
         e.preventDefault();
         const cli = document.getElementById('selectCliente').value;
@@ -1483,7 +1488,6 @@
             }
         }).join(', ');
 
-        // Calcular el próximo correlativo (ej. FAC-01, FAC-02...) basado en ventasCache
         let maxNum = 0;
         if (typeof ventasCache !== 'undefined' && ventasCache.length > 0) {
             ventasCache.forEach(v => {
@@ -1504,7 +1508,7 @@
                 mode: 'no-cors', 
                 body: JSON.stringify({ 
                     action: 'guardarVenta',
-                    id: nuevoCorrelativo, // <--- Este es el ID que enviamos al Backend
+                    id: nuevoCorrelativo,
                     cliente: cli, 
                     carrito: carrito, 
                     total: totalVentaActual,
@@ -1596,6 +1600,27 @@
             cargarProductos();
         } catch (err) { alert("Error al guardar"); } finally { btn.disabled = false; btn.innerText = 'Guardar Cambios'; }
     });
+
+    // ====== NUEVA FUNCIÓN PARA EL BUSCADOR DE INVENTARIO ======
+    function filtrarInventario() {
+        const input = document.getElementById('buscadorInventario').value.toLowerCase();
+        const filas = document.querySelectorAll('#tablaProductos tbody tr');
+        
+        filas.forEach(fila => {
+            // Ignoramos la fila de "Cargando..."
+            if(fila.children.length < 3) return;
+            
+            const codigo = fila.children[1].textContent.toLowerCase();
+            const descripcion = fila.children[2].textContent.toLowerCase();
+            
+            if (codigo.includes(input) || descripcion.includes(input)) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    }
+    // ==========================================================
 
     function filtrarBuscadorVentas() {
         const input = document.getElementById('buscadorProductos').value.toLowerCase();
@@ -2010,46 +2035,6 @@
                 }
             }
         });
-    }
-
-    function guardarCategoria() {
-        const nombre = document.getElementById('nombreCategoria') ? document.getElementById('nombreCategoria').value : '';
-        if (nombre && typeof categorias !== 'undefined') {
-            const nuevaCat = {
-                id: Date.now(),
-                nombre: nombre
-            };
-            categorias.push(nuevaCat);
-            if(typeof guardarDatos === 'function') guardarDatos();
-            renderCategorias();
-            document.getElementById('nombreCategoria').value = '';
-            const modal = bootstrap.Modal.getInstance(document.getElementById('modalCategoria'));
-            if(modal) modal.hide();
-        }
-    }
-
-    function eliminarCategoria(id) {
-        if (confirm('¿Estás seguro de que deseas eliminar esta categoría?')) {
-            if (typeof categorias !== 'undefined') {
-                const categoria = categorias.find(c => c.id === id);
-                if (categoria && typeof productos !== 'undefined') {
-                    const enUso = productos.some(p => p.categoria === categoria.nombre);
-                    if (enUso) {
-                        alert(`No se puede eliminar la categoría "${categoria.nombre}" porque hay productos que la están utilizando. Cambia la categoría de esos productos o elimínelos primero.`);
-                        return; 
-                    }
-                }
-                categorias = categorias.filter(c => c.id !== id);
-                if(typeof guardarDatos === 'function') guardarDatos();
-                renderCategorias();
-                if(typeof renderCategoriaFiltro === 'function') renderCategoriaFiltro(); 
-            }
-        }
-    }
-
-    function renderCategorias() {
-        const tbody = document.getElementById('tbodyCategorias');
-        if (tbody) tbody.innerHTML = '';
     }
 
 </script>
