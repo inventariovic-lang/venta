@@ -1503,6 +1503,45 @@
         const nuevoCorrelativo = 'FAC-' + String(proximoNumero).padStart(2, '0');
 
         try {
+            // NUEVO Y CORREGIDO: Descontar inventario secuencialmente con retraso
+            for (let item of carrito) {
+                let prod = productosCache.find(p => String(p.Codigo).trim() === String(item.codigo).trim());
+                if (prod) {
+                    let currentStock = parseFloat(prod.Stock);
+                    if (isNaN(currentStock)) currentStock = 0;
+                    
+                    let qty = parseFloat(item.cantidad);
+                    if (isNaN(qty)) qty = 0;
+
+                    let nuevoStock = currentStock - qty;
+                    if (nuevoStock < 0) nuevoStock = 0; 
+                    
+                    let precioActual = parseFloat(prod.Precio);
+                    if (isNaN(precioActual)) precioActual = 0;
+
+                    let catValue = prod.Categoria || prod.Categoría || prod.categoria || prod.categoría || 'General';
+
+                    let dataStock = {
+                        action: 'editProducto',
+                        codigo: String(prod.Codigo).trim(),
+                        descripcion: String(prod.Descripcion).trim(),
+                        categoria: String(catValue).trim(),
+                        stock: String(nuevoStock),
+                        precio: precioActual.toFixed(2)
+                    };
+                    
+                    await fetch(API_URL, { 
+                        method: 'POST', 
+                        mode: 'no-cors', 
+                        body: JSON.stringify(dataStock) 
+                    });
+                    
+                    // RETRASO CRÍTICO: Evita colisiones de escritura en Google Sheets
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                }
+            }
+
+            // Guardar Venta Original
             await fetch(API_URL, { 
                 method: 'POST', 
                 mode: 'no-cors', 
@@ -1517,6 +1556,10 @@
                     vendedor: vendedorActivo
                 }) 
             });
+
+            // Dar un tiempo a Sheets para que termine de guardar la última petición antes de recargar visualmente
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             alert(`¡Venta procesada exitosamente con el ID: ${nuevoCorrelativo}!`);
             carrito = []; 
             renderCarrito();
@@ -1524,6 +1567,7 @@
             cargarDashboard();
         } catch (error) { 
             alert("Error al procesar la venta."); 
+            console.error(error);
         } finally { 
             btn.innerHTML = 'Guardar Venta'; 
             btn.disabled = false; 
