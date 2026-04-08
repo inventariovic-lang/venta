@@ -578,15 +578,18 @@
 
         <section id="view-reportes" class="view-section">
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-                <h3 class="fw-bold"><i class="fa fa-chart-pie text-primary me-2"></i> Reportes por Método de Pago</h3>
-                <button class="btn btn-outline-secondary rounded-pill px-4 mt-2 mt-md-0" onclick="cargarReportes()">
-                    <i class="fa fa-sync-alt me-2"></i> Actualizar Reporte
-                </button>
+                <h3 class="fw-bold"><i class="fa fa-chart-pie text-primary me-2"></i> Reportes de Caja</h3>
+                <div class="d-flex align-items-center mt-2 mt-md-0 gap-2">
+                    <input type="date" id="fechaReporteCaja" class="form-control rounded-pill" onchange="cargarReportes()" style="background-color: var(--app-gray); border: none; padding: 10px 20px;" title="Filtrar por fecha">
+                    <button class="btn btn-outline-secondary rounded-pill px-4" onclick="cargarReportes()">
+                        <i class="fa fa-sync-alt me-2"></i> Actualizar
+                    </button>
+                </div>
             </div>
 
             <div class="row g-3" id="contenedor-reportes">
                 <div class="col-12 text-center mt-5">
-                    <h5 class="text-muted">Cargando reportes...</h5>
+                    <h5 class="text-muted">Cargando reportes diarios...</h5>
                 </div>
             </div>
         </section>
@@ -1503,45 +1506,6 @@
         const nuevoCorrelativo = 'FAC-' + String(proximoNumero).padStart(2, '0');
 
         try {
-            // NUEVO Y CORREGIDO: Descontar inventario secuencialmente con retraso
-            for (let item of carrito) {
-                let prod = productosCache.find(p => String(p.Codigo).trim() === String(item.codigo).trim());
-                if (prod) {
-                    let currentStock = parseFloat(prod.Stock);
-                    if (isNaN(currentStock)) currentStock = 0;
-                    
-                    let qty = parseFloat(item.cantidad);
-                    if (isNaN(qty)) qty = 0;
-
-                    let nuevoStock = currentStock - qty;
-                    if (nuevoStock < 0) nuevoStock = 0; 
-                    
-                    let precioActual = parseFloat(prod.Precio);
-                    if (isNaN(precioActual)) precioActual = 0;
-
-                    let catValue = prod.Categoria || prod.Categoría || prod.categoria || prod.categoría || 'General';
-
-                    let dataStock = {
-                        action: 'editProducto',
-                        codigo: String(prod.Codigo).trim(),
-                        descripcion: String(prod.Descripcion).trim(),
-                        categoria: String(catValue).trim(),
-                        stock: String(nuevoStock),
-                        precio: precioActual.toFixed(2)
-                    };
-                    
-                    await fetch(API_URL, { 
-                        method: 'POST', 
-                        mode: 'no-cors', 
-                        body: JSON.stringify(dataStock) 
-                    });
-                    
-                    // RETRASO CRÍTICO: Evita colisiones de escritura en Google Sheets
-                    await new Promise(resolve => setTimeout(resolve, 600));
-                }
-            }
-
-            // Guardar Venta Original
             await fetch(API_URL, { 
                 method: 'POST', 
                 mode: 'no-cors', 
@@ -1556,10 +1520,6 @@
                     vendedor: vendedorActivo
                 }) 
             });
-
-            // Dar un tiempo a Sheets para que termine de guardar la última petición antes de recargar visualmente
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
             alert(`¡Venta procesada exitosamente con el ID: ${nuevoCorrelativo}!`);
             carrito = []; 
             renderCarrito();
@@ -1567,7 +1527,6 @@
             cargarDashboard();
         } catch (error) { 
             alert("Error al procesar la venta."); 
-            console.error(error);
         } finally { 
             btn.innerHTML = 'Guardar Venta'; 
             btn.disabled = false; 
@@ -1950,13 +1909,24 @@
         }
     }
 
+    // ====== FUNCIÓN MODIFICADA PARA REPORTES DIARIOS ======
     async function cargarReportes() {
         const contenedor = document.getElementById('contenedor-reportes');
         if (!contenedor) return;
 
+        // Validar fecha para filtro
+        const inputFecha = document.getElementById('fechaReporteCaja');
+        if (inputFecha && !inputFecha.value) {
+            const hoy = new Date();
+            const offset = hoy.getTimezoneOffset() * 60000;
+            const fechaLocal = new Date(hoy.getTime() - offset).toISOString().split('T')[0];
+            inputFecha.value = fechaLocal;
+        }
+        const fechaSeleccionada = inputFecha ? inputFecha.value : null;
+
         const tasaActual = parseFloat(localStorage.getItem('tasa_dia_valor')) || 1;
 
-        contenedor.innerHTML = '<div class="col-12 text-center mt-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x mb-3"></i><br><h5>Calculando y separando ingresos...</h5></div>';
+        contenedor.innerHTML = '<div class="col-12 text-center mt-5 text-muted"><i class="fa fa-spinner fa-spin fa-2x mb-3"></i><br><h5>Calculando y separando ingresos diarios...</h5></div>';
 
         try {
             const res = await fetch(`${API_URL}?action=getVentas&_=${new Date().getTime()}`);
@@ -1964,8 +1934,31 @@
 
             const totalesPorMetodo = {};
             let totalGeneral = 0;
+            let ventasFiltradas = 0;
 
             ventas.forEach(v => {
+                // Filtro por la fecha seleccionada
+                if (fechaSeleccionada && v.Fecha) {
+                    const [year, month, day] = fechaSeleccionada.split('-');
+                    const fStr = v.Fecha.toString().trim();
+                    let coincideFecha = false;
+                    
+                    if (fStr.startsWith(`${year}-${month}-${day}`)) {
+                        coincideFecha = true;
+                    } else {
+                        const fechaPart = fStr.split(' ')[0]; 
+                        const partes = fechaPart.split('/');
+                        if (partes.length === 3) {
+                            const d = partes[0].padStart(2, '0');
+                            const m = partes[1].padStart(2, '0');
+                            const y = partes[2];
+                            if (d === day && m === month && y === year) coincideFecha = true;
+                        }
+                    }
+                    if (!coincideFecha) return; // Si no es de hoy, salta al siguiente
+                }
+
+                ventasFiltradas++;
                 const metodoPago = v["Metodo Pago"] || v["Método Pago"] || v.Metodo || v.Tipo || "No Especificado"; 
                 const monto = parseFloat(v.Total) || 0;
 
@@ -1978,6 +1971,11 @@
             });
 
             contenedor.innerHTML = ''; 
+
+            if (ventasFiltradas === 0) {
+                contenedor.innerHTML = '<div class="col-12 text-center mt-4 text-muted"><i class="fa fa-box-open fa-2x mb-3"></i><br><h5>No hay ventas registradas para la fecha seleccionada.</h5></div>';
+                return;
+            }
 
             for (const [metodo, total] of Object.entries(totalesPorMetodo)) {
                 
@@ -2001,7 +1999,7 @@
             contenedor.innerHTML += `
                 <div class="col-12 mt-4">
                     <div class="card-app p-4 text-center" style="background-color: var(--app-dark); color: white; border-radius: var(--radius-card);">
-                        <p class="text-muted mb-1 fw-bold">TOTAL INGRESOS (TODOS LOS MÉTODOS)</p>
+                        <p class="text-muted mb-1 fw-bold">TOTAL INGRESOS DEL DÍA</p>
                         <h1 class="fw-bold text-success mb-0" style="font-size: 3rem;">$${totalGeneral.toFixed(2)}</h1>
                     </div>
                 </div>`;
@@ -2011,6 +2009,7 @@
             contenedor.innerHTML = '<div class="col-12"><div class="alert alert-danger rounded-4">Error al cargar los datos. Verifica la conexión.</div></div>';
         }
     }
+    // ======================================================
 
     let chartVentas = null; 
 
