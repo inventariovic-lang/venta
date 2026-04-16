@@ -1355,9 +1355,7 @@
                     
                     const safeCat = categoriaProd.replace(/'/g, "\\'"); 
                     
-                    let btn = p.Stock > 0 
-                        ? `<button type="button" class="btn btn-dark btn-sm rounded-pill px-3" onclick="agregarAlCarrito('${p.Codigo}', '${p.Descripcion}', ${p.Precio}, ${p.Stock}, '${safeCat}')">Agregar</button>` 
-                        : `<button class="btn btn-secondary btn-sm rounded-pill px-3" disabled>Agotado</button>`;
+                    let btn = `<button type="button" class="btn btn-dark btn-sm rounded-pill px-3" onclick="agregarAlCarrito('${p.Codigo}', 			    '${p.Descripcion}', ${p.Precio}, ${p.Stock}, '${safeCat}')">Agregar</button>`;
                     
                     tbodyVentas.innerHTML += `<tr>
                         <td class="d-none">${i+1}</td>
@@ -1374,55 +1372,49 @@
     }
 
     function agregarAlCarrito(cod, desc, precio, stockMax, categoria = '') {
-        
-        let esPesable = false;
-        let catStr = categoria.toLowerCase();
-        if(catStr.includes('charcuteria') || catStr.includes('charcutería') || catStr.includes('verdura')) {
-            esPesable = true;
-        }
-
-        let cantidadAAgregar = 1;
-
-        if (esPesable) {
-            let cantidadIngresada = prompt(`Ingrese el PESO EN GRAMOS para ${desc}\n(Ej. 500 para medio kilo, 1250 para 1 kilo y cuarto):`, "1000");
-            if (cantidadIngresada === null || cantidadIngresada.trim() === "") return; 
-            cantidadAAgregar = parseFloat(cantidadIngresada) / 1000;
-        } else {
-            let cantidadIngresada = prompt(`Ingrese la cantidad de UNIDADES para ${desc}:`, "1");
-            if (cantidadIngresada === null || cantidadIngresada.trim() === "") return;
-            cantidadAAgregar = parseInt(cantidadIngresada);
-        }
-        
-        if (isNaN(cantidadAAgregar) || cantidadAAgregar <= 0) {
-            alert("Por favor, ingrese una cantidad válida mayor a 0.");
-            return;
-        }
-
-        let item = carrito.find(i => i.codigo === cod);
-        
-        if (item) {
-            if ((item.cantidad + cantidadAAgregar) <= stockMax) {
-                item.cantidad += cantidadAAgregar;
-            } else {
-                alert(`No puedes superar el stock. Solo quedan ${esPesable ? (stockMax * 1000).toFixed(0) + ' g' : stockMax} disponibles.`);
-            }
-        } else {
-            if (cantidadAAgregar <= stockMax) {
-                carrito.push({ 
-                    codigo: cod, 
-                    descripcion: desc, 
-                    precio: parseFloat(precio) || 0, 
-                    cantidad: cantidadAAgregar, 
-                    stockMax: stockMax,
-                    esPesable: esPesable 
-                });
-            } else {
-                alert(`No puedes superar el stock. Solo quedan ${esPesable ? (stockMax * 1000).toFixed(0) + ' g' : stockMax} disponibles.`);
-            }
-        }
-        
-        renderCarrito();
+    
+    let esPesable = false;
+    let catStr = categoria.toLowerCase();
+    if(catStr.includes('charcuteria') || catStr.includes('charcutería') || catStr.includes('verdura')) {
+        esPesable = true;
     }
+
+    let cantidadAAgregar = 1;
+
+    if (esPesable) {
+        let cantidadIngresada = prompt(`Ingrese el PESO EN GRAMOS para ${desc}\n(Ej. 500 para medio kilo, 1250 para 1 kilo y cuarto):`, "1000");
+        if (cantidadIngresada === null || cantidadIngresada.trim() === "") return; 
+        cantidadAAgregar = parseFloat(cantidadIngresada) / 1000;
+    } else {
+        let cantidadIngresada = prompt(`Ingrese la cantidad de UNIDADES para ${desc}:`, "1");
+        if (cantidadIngresada === null || cantidadIngresada.trim() === "") return;
+        cantidadAAgregar = parseInt(cantidadIngresada);
+    }
+    
+    if (isNaN(cantidadAAgregar) || cantidadAAgregar <= 0) {
+        alert("Por favor, ingrese una cantidad válida mayor a 0.");
+        return;
+    }
+
+    let item = carrito.find(i => i.codigo === cod);
+    
+    if (item) {
+        // Se suma la cantidad directamente sin validar contra stockMax
+        item.cantidad += cantidadAAgregar;
+    } else {
+        // Se agrega el producto directamente sin validar contra stockMax
+        carrito.push({ 
+            codigo: cod, 
+            descripcion: desc, 
+            precio: parseFloat(precio) || 0, 
+            cantidad: cantidadAAgregar, 
+            stockMax: stockMax,
+            esPesable: esPesable 
+        });
+    }
+    
+    renderCarrito();
+}
 
     function renderCarrito() {
         const tbody = document.getElementById('tablaVentaDetalle');
